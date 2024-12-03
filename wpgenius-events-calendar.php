@@ -19,14 +19,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 define( 'WGEC_DIR_URL', plugin_dir_url( __FILE__ ) );
 define( 'WGEC_DIR_PATH', plugin_dir_path( __FILE__ ) );
 
-include_once 'includes/class.wgec-init.php';
-include_once 'includes/class.wgec-database.php';
-include_once 'includes/class.wgec-ajax.php';
-include_once 'includes/class.wgec-admin.php';
-include_once 'includes/class.wgec-settings.php';
-include_once 'includes/class.wgec-actions.php';
-include_once 'includes/shortcodes/shortcodes.php';
-include_once 'includes/widgets/widgets.php';
+include_once WGEC_DIR_PATH.'includes/class.wgec-init.php';
+include_once WGEC_DIR_PATH.'includes/class.wgec-database.php';
+include_once WGEC_DIR_PATH.'includes/class.wgec-ajax.php';
+include_once WGEC_DIR_PATH.'includes/class.wgec-admin.php';
+include_once WGEC_DIR_PATH.'includes/class.wgec-settings.php';
+include_once WGEC_DIR_PATH.'includes/class.wgec-actions.php';
+include_once WGEC_DIR_PATH.'includes/shortcodes/shortcodes.php';
+include_once WGEC_DIR_PATH.'includes/widgets/widgets.php';
 
 // Add text domain
 add_action('plugins_loaded','wpgenius_events_translations');
