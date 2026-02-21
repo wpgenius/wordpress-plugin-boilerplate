@@ -4,7 +4,7 @@
  * @class       MyPlugin_Class_Settings
  * @author      Team WPGenius (Makarand Mane)
  * @category    Admin
- * @package     myplugin/includes
+ * @package     wordpress-plugin-boilerplate/includes
  * @version     1.0
  */
 

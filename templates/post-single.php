@@ -4,7 +4,7 @@
  * @class       MyPlugin_Class_Template_Single
  * @author      Team WPGenius (Makarand Mane)
  * @category    Admin
- * @package     myplugin/includes/templates
+ * @package     wordpress-plugin-boilerplate/includes/templates
  * @version     1.0
  */
 

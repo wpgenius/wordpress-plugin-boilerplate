@@ -4,7 +4,7 @@
  * @class       MyPlugin_Class_Widgets
  * @author      Team WPGenius (Makarand Mane)
  * @category    Admin
- * @package     myplugin/includes/widgets
+ * @package     wordpress-plugin-boilerplate/includes/widgets
  * @version     1.0
  */
  
