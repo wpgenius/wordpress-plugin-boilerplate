@@ -1,10 +1,10 @@
 <?php
 /**
  *
- * @class       WPGenius_Events_Ajax
+ * @class       MyPlugin_Class_Ajax
  * @author      Team WPGenius (Makarand Mane)
  * @category    Admin
- * @package     wpgenius-events-calendar/includes
+ * @package     myplugin/includes
  * @version     1.0
  */
 
@@ -12,12 +12,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-class WPGenius_Events_Ajax extends WPGenius_Events_API{
+class MyPlugin_Class_Ajax extends MyPlugin_Class_API{
 	public static $instance;
 	public static function init(){
 
 	    if ( is_null( self::$instance ) )
-	        self::$instance = new WPGenius_Events_Ajax();
+	        self::$instance = new MyPlugin_Class_Ajax();
 	    return self::$instance;
 	}
 
@@ -37,8 +37,8 @@ class WPGenius_Events_Ajax extends WPGenius_Events_API{
 			//write code
 		
 		}  else {
-			wp_send_json_error( array( 'msg'=>   __( 'Invalid user.', 'wpgenius-events-calendar' ) ) );
+			wp_send_json_error( array( 'msg'=>   __( 'Invalid user.', 'wordpress-plugin-boilerplate' ) ) );
 		}	
 	}
 
-}// END class WPGenius_Events_Ajax
+}// END class MyPlugin_Class_Ajax

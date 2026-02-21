@@ -1,10 +1,10 @@
 <?php
 /**
  *
- * @class       WPGenius_Events_Actions
+ * @class       MyPlugin_Class_Actions
  * @author      Team WPGenius (Makarand Mane)
  * @category    Admin
- * @package     wpgenius-events-calendar/includes
+ * @package     myplugin/includes
  * @version     1.0
  */
 
@@ -12,13 +12,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-class WPGenius_Events_Actions extends WPGenius_Events_API{
+class MyPlugin_Class_Actions extends MyPlugin_Class_API{
 
 	public static $instance;
 	public static function init(){
 
 	    if ( is_null( self::$instance ) )
-	        self::$instance = new WPGenius_Events_Actions();
+	        self::$instance = new MyPlugin_Class_Actions();
 	    return self::$instance;
 	}
 
@@ -28,7 +28,7 @@ class WPGenius_Events_Actions extends WPGenius_Events_API{
 		//event_reminder
 		add_action( 'event_reminder',	array( $this, 'event_reminder_mail' ),	10,	2);		
 		//event_reminder cron hook
-		add_action( 'wgec_event_reminder',	array( $this, 'event_reminder_cron' ),	10 );
+		add_action( 'myplugin_event_reminder',	array( $this, 'event_reminder_cron' ),	10 );
 		
 	} // END public function __construct
 
@@ -38,9 +38,9 @@ class WPGenius_Events_Actions extends WPGenius_Events_API{
 			return;
 				
 		if( is_singular( 'event' ) ){
-			wp_enqueue_style('wgec_css',WGEC_DIR_URL.'assets/css/style.css');			
-			wp_enqueue_script( 'wgec-common', WGEC_DIR_URL.'assets/js/wgec-common.js' ,array( 'jquery'));
-			wp_localize_script( 'wgec-common', 'wgec_common', $this->get_localise( 'common' ) );
+			wp_enqueue_style('myplugin_css',MYPLUGIN_DIR_URL.'assets/css/style.css');			
+			wp_enqueue_script( 'myplugin-common', MYPLUGIN_DIR_URL.'assets/js/common.js' ,array( 'jquery'));
+			wp_localize_script( 'myplugin-common', 'myplugin_common', $this->get_localise( 'common' ) );
 		}
 	}
 	
@@ -54,7 +54,7 @@ class WPGenius_Events_Actions extends WPGenius_Events_API{
 	
 	public function event_reminder_cron( $event_id ){
 		
-		if( get_option( 'events_reminder_enabled' ) ){ 
+		if( get_option( 'myplugin_reminder_enabled' ) ){ 
 			//$data = $this->get_class( $event_id );
 			//do_action( 'event_reminder', $event_id, $data );
 		}
@@ -62,4 +62,4 @@ class WPGenius_Events_Actions extends WPGenius_Events_API{
 			$this->deactivate_cron();
 	}
 		
-} // END class WPGenius_Events_Actions
+} // END class MyPlugin_Class_Actions

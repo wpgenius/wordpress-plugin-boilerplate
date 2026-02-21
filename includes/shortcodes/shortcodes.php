@@ -1,20 +1,20 @@
 <?php
 /**
  *
- * @class       WPGenius_Shortcodes
+ * @class       MyPlugin_Class_Shortcodes
  * @author      Team WPGenius (Makarand Mane)
  * @category    Admin
- * @package     wpgenius-events-calendar/includes/widgets
+ * @package     myplugin/includes/widgets
  * @version     1.0
  */
 
- class WPGenius_Shortcodes extends WPGenius_Events_API{
+ class MyPlugin_Class_Shortcodes extends MyPlugin_Class_API{
 
 	public static $instance;
 	public static function init(){
 
 	    if ( is_null( self::$instance ) )
-	        self::$instance = new WPGenius_Shortcodes();
+	        self::$instance = new MyPlugin_Class_Shortcodes();
 	    return self::$instance;
 	}
 

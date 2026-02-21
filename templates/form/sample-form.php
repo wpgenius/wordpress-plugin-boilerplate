@@ -1,10 +1,10 @@
 <?php
 /**
  *
- * @class       WPGenius_Events_Template_Loop
+ * @class       MyPlugin_Class_Template_Form
  * @author      Team WPGenius (Makarand Mane)
  * @category    Admin
- * @package     wpgenius-events-calendar/includes/templates
+ * @package     myplugin/includes/templates
  * @version     1.0
  */
 

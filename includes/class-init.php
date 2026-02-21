@@ -1,10 +1,10 @@
 <?php
 /**
  *
- * @class       WPGenius_Events_API
+ * @class       MyPlugin_Class_API
  * @author      Team WPGenius (Makarand Mane)
  * @category    Admin
- * @package     wpgenius-events-calendar/includes
+ * @package     myplugin/includes
  * @version     1.0
  */
 
@@ -12,7 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-class WPGenius_Events_API{
+class MyPlugin_Class_API{
 
 	private function __construct(){
 		
@@ -34,7 +34,7 @@ class WPGenius_Events_API{
 
 	protected function get_timezone_to_timestamp( $timezone, $datetime ){
 		global $wpdb;
-		$timezone = $wpdb->get_col( $wpdb->prepare( "SELECT timezone_country FROM $wpdb->wgec_timezones WHERE timezone_id=%d ", $timezone ) );
+		$timezone = $wpdb->get_col( $wpdb->prepare( "SELECT timezone_country FROM $wpdb->myplugin_timezones WHERE timezone_id=%d ", $timezone ) );
 		return $this->convert_tz( $datetime, '', $timezone[0], 'U' );
 	}
 	
@@ -60,11 +60,11 @@ class WPGenius_Events_API{
 							'nonce'				=>	wp_create_nonce( 'event_security_nonce' ),
 							'location_url'		=>	admin_url('admin.php').'?page=add_event&event_id=',
 							'modal_url'			=>  admin_url('admin-ajax.php').'?action=create_front_event',
-							'alert'				=>	__( 'Alert!', 'wpgenius-events-calendar' ),
-							'edit_event'		=>	__( 'Edit event', 'wpgenius-events-calendar' ),
-							'json_error'		=>	__( 'Please contact administrator!', 'wpgenius-events-calendar' ),
-							'saving_msg'		=>	__( 'Saving event...', 'wpgenius-events-calendar' ),
-							'save_msg'			=>	__( 'Save', 'wpgenius-events-calendar' ),
+							'alert'				=>	__( 'Alert!', 'wordpress-plugin-boilerplate' ),
+							'edit_event'		=>	__( 'Edit event', 'wordpress-plugin-boilerplate' ),
+							'json_error'		=>	__( 'Please contact administrator!', 'wordpress-plugin-boilerplate' ),
+							'saving_msg'		=>	__( 'Saving event...', 'wordpress-plugin-boilerplate' ),
+							'save_msg'			=>	__( 'Save', 'wordpress-plugin-boilerplate' ),
 						);
 			break;			
 			
@@ -80,22 +80,22 @@ class WPGenius_Events_API{
 		if ( isset( $_REQUEST['security'] ) && wp_verify_nonce( $_REQUEST['security'], $action ) ){
 			return true;
 		}
-		wp_send_json_error( array( 'msg'=> __('Invalid security token sent.', 'wpgenius-events-calendar' ) ) );
+		wp_send_json_error( array( 'msg'=> __('Invalid security token sent.', 'wordpress-plugin-boilerplate' ) ) );
 	}	
 	
 	/**
 	*	 schedule reminder mail cron job for single class
 	*/
 	private function schedule_cron( $class, $time_in_second = '' ){
-		if( get_option('events_reminder_enabled' ) ){
+		if( get_option('myplugin_reminder_enabled' ) ){
 			if( !$time_in_second ){
-				$time = get_option('events_reminder_interval' );
+				$time = get_option('myplugin_reminder_interval' );
 				$time_in_second = $time * 60;
 			}
 				
 			$args = array( (int)$class[ 'class_id'] );
-			if( !wp_next_scheduled( 'wgec_event_reminder', $args ) )
-				wp_schedule_single_event( $class[ 'start_ts' ] - $time_in_second, 'wgec_event_reminder', $args );
+			if( !wp_next_scheduled( 'myplugin_event_reminder', $args ) )
+				wp_schedule_single_event( $class[ 'start_ts' ] - $time_in_second, 'myplugin_event_reminder', $args );
 		}
 	}	
 	
@@ -103,7 +103,7 @@ class WPGenius_Events_API{
 	*	Unschedule reminder mail cron job for single class
 	*/
 	private function unschedule_cron( $class_id ){
-		return wp_clear_scheduled_hook('wgec_event_reminder', array( (int)$class_id ) );
+		return wp_clear_scheduled_hook('myplugin_event_reminder', array( (int)$class_id ) );
 	}	
 	
 	/**
@@ -114,7 +114,7 @@ class WPGenius_Events_API{
 			$this->deactivate_cron(); //Remove all cron Jobs
 			
 		if( !$time )
-			$time = get_option('events_reminder_interval' );
+			$time = get_option('myplugin_reminder_interval' );
 		$time_in_second = $time * 60;
 		
 		// global $wpdb;
@@ -132,7 +132,7 @@ class WPGenius_Events_API{
 	*/
 	protected function deactivate_cron(){	
 		
-		$hook	= 'wgec_event_reminder';
+		$hook	= 'myplugin_event_reminder';
 		$crons 	= _get_cron_array();
 		foreach ( $crons as $timestamp => $cron ) {
 			if ( isset( $cron[ $hook ] ) ) {
@@ -157,4 +157,4 @@ class WPGenius_Events_API{
 	
 
 
-} // END class WPGenius_Events_API
+} // END class MyPlugin_Class_API

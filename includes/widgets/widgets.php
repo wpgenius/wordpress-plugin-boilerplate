@@ -1,10 +1,10 @@
 <?php
 /**
  *
- * @class       WPGenius_Widgets
+ * @class       MyPlugin_Class_Widgets
  * @author      Team WPGenius (Makarand Mane)
  * @category    Admin
- * @package     wpgenius-events-calendar/includes/widgets
+ * @package     myplugin/includes/widgets
  * @version     1.0
  */
  
