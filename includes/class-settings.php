@@ -28,15 +28,15 @@ class MyPlugin_Class_Settings extends MyPlugin_Class_API{
 
 	private function __construct(){
 
-		add_action( 'admin_menu', array($this,'myplugin_settings_menu'), 11);
-		add_action( 'admin_init', array($this,'myplugin_register_settings'),10);
+		add_action( 'admin_menu', array($this,'settings_menu'), 11);
+		add_action( 'admin_init', array($this,'register_settings'),10);
 		
 		add_action( 'update_option_'.$this->prefix.'reminder_enabled', 	array( $this,'event_reminder_update_cron_job'	), 10, 3);
 		add_action( 'update_option_'.$this->prefix.'reminder_interval', array( $this,'event_reminder_update_cron_time'	), 10, 3);
 
 	} // END public function __construct
 
-	function myplugin_settings_menu(){
+	function settings_menu(){
 
 		add_submenu_page(
 			'events',
@@ -44,11 +44,11 @@ class MyPlugin_Class_Settings extends MyPlugin_Class_API{
 			__('Settings','wordpress-plugin-boilerplate' ), // menu title
 			'manage_options', // capability
 			$this->page, // menu slug
-			array( $this, 'myplugin_api_settings')
+			array( $this, 'api_settings')
 		);
 	}
 
-	function myplugin_register_settings() {
+	function register_settings() {
 		
 		//Register settings
 	    register_setting( $this->opt_grp, $this->prefix.'event_per_page',	array( 'type' => 'string', 'default' => '5' ) );
@@ -58,24 +58,24 @@ class MyPlugin_Class_Settings extends MyPlugin_Class_API{
 	    register_setting( $this->opt_grp, $this->prefix.'delete_settings',	array( 'type' => 'boolean', 'default' => 0 ) );
 		
 		//Register sections
-		add_settings_section( $this->prefix.'genaral',	 		__('General preference','wordpress-plugin-boilerplate'),		array( $this, 'myplugin_genaral_title' ),	$this->page );
-		add_settings_section( $this->prefix.'email',	 		__('E-mail preference','wordpress-plugin-boilerplate'),		array( $this, 'myplugin_email_title' ),	$this->page );		
-		add_settings_section( $this->prefix.'remove_section', 	__('Uninstall preference','wordpress-plugin-boilerplate'),	array( $this, 'myplugin_remove_section_title' ),$this->page );
+		add_settings_section( $this->prefix.'genaral',	 		__('General preference','wordpress-plugin-boilerplate'),		array( $this, 'genaral_title' ),	$this->page );
+		add_settings_section( $this->prefix.'email',	 		__('E-mail preference','wordpress-plugin-boilerplate'),		array( $this, 'email_title' ),	$this->page );		
+		add_settings_section( $this->prefix.'remove_section', 	__('Uninstall preference','wordpress-plugin-boilerplate'),	array( $this, 'remove_section_title' ),$this->page );
 		
-		//Add settings to section- myplugin_api_section 
-		add_settings_field( $this->prefix.'event_per_page',	__('Class per page :','wordpress-plugin-boilerplate'), array( $this, 'myplugin_event_per_page_field' ), 	$this->page, $this->prefix.'genaral', array( 'label_for' => $this->prefix.'event_per_page' ) );
+		//Add settings to section- api_section 
+		add_settings_field( $this->prefix.'event_per_page',	__('Class per page :','wordpress-plugin-boilerplate'), array( $this, 'event_per_page_field' ), 	$this->page, $this->prefix.'genaral', array( 'label_for' => $this->prefix.'event_per_page' ) );
 		
 		//Class reminder settings
-		add_settings_field( $this->prefix.'reminder_enabled',	__('Class reminder cron job:','wordpress-plugin-boilerplate'), array( $this, 'myplugin_reminder_enabled_field' ), 	$this->page, $this->prefix.'email', array( 'label_for' => 'reminder_enabled' ) );
-		add_settings_field( $this->prefix.'reminder_interval',	__('Schedule reminder Email (in minutes):','wordpress-plugin-boilerplate'), array( $this, 'myplugin_reminder_interval_field' ), 	$this->page, $this->prefix.'email', array( 'label_for' => $this->prefix.'reminder_interval' ) );
+		add_settings_field( $this->prefix.'reminder_enabled',	__('Class reminder cron job:','wordpress-plugin-boilerplate'), array( $this, 'reminder_enabled_field' ), 	$this->page, $this->prefix.'email', array( 'label_for' => 'reminder_enabled' ) );
+		add_settings_field( $this->prefix.'reminder_interval',	__('Schedule reminder Email (in minutes):','wordpress-plugin-boilerplate'), array( $this, 'reminder_interval_field' ), 	$this->page, $this->prefix.'email', array( 'label_for' => $this->prefix.'reminder_interval' ) );
 			
-		//Add settings to section- myplugin_remove_section 
-		add_settings_field( $this->prefix.'delete_db',__('Delete Classroom database table:','wordpress-plugin-boilerplate'), array( $this, 'myplugin_delete_db_field' ), $this->page, $this->prefix.'remove_section', array( 'label_for' => 'delete_db' ) );
-		add_settings_field( $this->prefix.'delete_settings',__('Delete settings:','wordpress-plugin-boilerplate'), array( $this, 'myplugin_delete_settings_field' ), $this->page, $this->prefix.'remove_section', array( 'label_for' => 'delete_settings' ) );
+		//Add settings to section- remove_section 
+		add_settings_field( $this->prefix.'delete_db',__('Delete Classroom database table:','wordpress-plugin-boilerplate'), array( $this, 'delete_db_field' ), $this->page, $this->prefix.'remove_section', array( 'label_for' => 'delete_db' ) );
+		add_settings_field( $this->prefix.'delete_settings',__('Delete settings:','wordpress-plugin-boilerplate'), array( $this, 'delete_settings_field' ), $this->page, $this->prefix.'remove_section', array( 'label_for' => 'delete_settings' ) );
 		
 	}
 	
-	function myplugin_api_settings(){
+	function api_settings(){
 		?>
         <div class="wrap">
     	
@@ -97,29 +97,29 @@ class MyPlugin_Class_Settings extends MyPlugin_Class_API{
 		
 	}
 	
-	function myplugin_genaral_title(){?>
+	function genaral_title(){?>
 		<p><?php _e( 'Choose general preference for Events for WPLMS below.','wordpress-plugin-boilerplate'); ?></p>
         <?php 
 	}
 	
-	function myplugin_email_title(){?>
+	function email_title(){?>
 		<p><?php _e( 'Choose preference for e-mail for Events below.','wordpress-plugin-boilerplate'); ?></p>
         <?php 
 	}	
 	
-	function myplugin_remove_section_title(){
+	function remove_section_title(){
 		?>
 		<p><?php _e( 'Choose plugin uninstallation preference below.','wordpress-plugin-boilerplate'); ?></p>
         <?php 
 	}
 	
-	function myplugin_event_per_page_field(){
+	function event_per_page_field(){
 		?>
        	<input type='number' min="1" max="50" name='<?php echo $this->prefix ?>event_per_page' id='<?php echo $this->prefix ?>event_per_page' value='<?php echo get_option( $this->prefix.'event_per_page' );?>' style="width: 300px;">
         <?php
 	}
 	
-	function myplugin_reminder_enabled_field(){
+	function reminder_enabled_field(){
 		?>
        	 <label><input type="radio" name="<?php echo $this->prefix ?>reminder_enabled" <?php checked( get_option( $this->prefix.'reminder_enabled' ), 1 ); ?> value="1" id="reminder_enabled"> <?php _e('Enable','wordpress-plugin-boilerplate'); ?></label>
          <label><input type="radio" name="<?php echo $this->prefix ?>reminder_enabled" <?php checked( get_option( $this->prefix.'reminder_enabled' ), 0 ); ?> value="0"> <?php _e('Disable','wordpress-plugin-boilerplate'); ?></label>
@@ -127,21 +127,21 @@ class MyPlugin_Class_Settings extends MyPlugin_Class_API{
         <?php
 	}
 	
-	function myplugin_reminder_interval_field(){
+	function reminder_interval_field(){
 		?>
        	<input type='number' min="5" max="7200" name='<?php echo $this->prefix ?>reminder_interval' id='<?php echo $this->prefix ?>reminder_interval' value='<?php echo get_option( $this->prefix.'reminder_interval' );?>' style="width: 300px;" <?php if( !get_option( $this->prefix.'reminder_enabled' ) ) echo 'readonly="readonly"';  ?> />
         <p>To send reminder to students for class, enter time in minutes. This field will be editable only when enable Class reminder. Accuracy of email depends upon site traffic and resources.</p>
         <?php
 	}
 	
-	function myplugin_delete_db_field(){
+	function delete_db_field(){
 		?>
        	 <input type="radio" name="<?php echo $this->prefix ?>delete_db" <?php checked( get_option( $this->prefix.'delete_db' ), 1 ); ?> value="1"> <?php _e('Yes','wordpress-plugin-boilerplate'); ?>
          <input type="radio" name="<?php echo $this->prefix ?>delete_db" <?php checked( get_option( $this->prefix.'delete_db' ), 0 ); ?> value="0" id="delete_db"> <?php _e('No','wordpress-plugin-boilerplate'); ?>
         <?php	
 	}
 	
-	function myplugin_delete_settings_field(){
+	function delete_settings_field(){
 		?>
        	 <input type="radio" name="<?php echo $this->prefix ?>delete_settings" <?php checked( get_option( $this->prefix.'delete_settings' ), 1 ); ?> value="1"> <?php _e('Yes','wordpress-plugin-boilerplate'); ?>
          <input type="radio" name="<?php echo $this->prefix ?>delete_settings" <?php checked( get_option( $this->prefix.'delete_settings' ), 0 ); ?> value="0" id="delete_settings"> <?php _e('No','wordpress-plugin-boilerplate'); ?>
