@@ -49,3 +49,9 @@ phpstan.neon.dist
 # Database Dumps
 *.sql
 *.sqlite
+
+# Documentation only needed for github, not for distribution
+CODE_OF_CONDUCT.md
+CONTRIBUTING.md
+README.md
+SECURITY.md
