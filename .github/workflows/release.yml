@@ -1,0 +1,44 @@
+name: Build Plugin Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install WP-CLI
+        run: |
+          curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+          chmod +x wp-cli.phar
+          sudo mv wp-cli.phar /usr/local/bin/wp
+
+      - name: Install Dist Archive Package
+        run: |
+          wp package install wp-cli/dist-archive-command
+
+      - name: Determine Plugin Slug
+        id: plugin
+        run: |
+          SLUG=$(basename $GITHUB_REPOSITORY)
+          echo "slug=$SLUG" >> $GITHUB_OUTPUT
+
+      - name: Create Plugin ZIP
+        run: |
+          mkdir -p build
+          wp dist-archive . build/${{ steps.plugin.outputs.slug }}.zip
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: build/${{ steps.plugin.outputs.slug }}.zip
+          generate_release_notes: true
