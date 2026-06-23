@@ -1,21 +1,37 @@
+# GitHub
 .github
+
+# IDE
 .vscode
 .idea
 
-docker-compose.yml
-Dockerfile
+# Docker
 .docker
+Dockerfile
+docker-compose.yml
 
+# Environment
 .env
+
+# Git
 .gitignore
 .distignore
 
-node_modules
-
+# Testing
 tests
-
 phpunit.xml.dist
 
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Optional items added for future safety
+
+# Node 
+node_modules
 composer.lock
 package-lock.json
 
@@ -30,9 +46,6 @@ phpcs.xml.dist
 phpstan.neon
 phpstan.neon.dist
 
-.DS_Store
-Thumbs.db
-
-*.log
+# Database Dumps
 *.sql
 *.sqlite
