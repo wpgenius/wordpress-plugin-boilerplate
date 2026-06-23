@@ -1,28 +1,46 @@
-# ignore everything in the root except the "wp-content" directory.
-!wp-content/
+# --------------------------------------------------
+# OS
+# --------------------------------------------------
+.DS_Store
 
-# ignore everything in the "wp-content" directory, except:
-# "mu-plugins", "plugins", "themes" directory
-wp-content/*
-!wp-content/mu-plugins/
-!wp-content/plugins/
-!wp-content/themes/
+# --------------------------------------------------
+# Logs
+# --------------------------------------------------
+*.log
+npm-debug.log*
 
-# ignore these plugins
-wp-content/plugins/hello.php
+# --------------------------------------------------
+# Environment
+# --------------------------------------------------
+.env
 
-# ignore specific themes
-wp-content/themes/twenty*/
-
-# ignore node dependency directories
+# --------------------------------------------------
+# Node
+# --------------------------------------------------
 node_modules/
 
-# ignore log files and databases
-*.log
+# --------------------------------------------------
+# Composer
+# --------------------------------------------------
+vendor/bin/
+
+# --------------------------------------------------
+# Database / Local Development
+# --------------------------------------------------
 *.sql
 *.sqlite
+database/
 
-# DW Dreamweaver added files
+# --------------------------------------------------
+# Docker
+# --------------------------------------------------
+.docker/
+docker-compose.yml
+Dockerfile
+
+# --------------------------------------------------
+# Dreamweaver (legacy)
+# --------------------------------------------------
 _notes
 _compareTemp
 configs/
@@ -31,8 +49,10 @@ includes/_notes/dwsync.xml
 /dwsync.xml
 dw_php_codehinting.config
 *.mno
-*.xml
 *.lck
 
-#VSCode
+# --------------------------------------------------
+# IDE / Editors
+# --------------------------------------------------
 .vscode/
+.idea/
