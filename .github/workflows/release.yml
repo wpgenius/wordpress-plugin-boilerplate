@@ -22,29 +22,17 @@ jobs:
           SLUG=$(basename $GITHUB_REPOSITORY)
           echo "slug=$SLUG" >> $GITHUB_OUTPUT
 
-      - name: Detect Main Plugin File
-        id: pluginfile
-        run: |
-          PLUGIN_FILE=$(find . -maxdepth 1 -name "*.php" ! -name "uninstall.php" | head -n 1)
-          echo "plugin_file=$(basename "$PLUGIN_FILE")" >> $GITHUB_OUTPUT
-
       - name: Build Release Package
         run: |
           SLUG=${{ steps.plugin.outputs.slug }}
 
           mkdir -p release/$SLUG
 
-          cp -R assets release/$SLUG/ 2>/dev/null || true
-          cp -R includes release/$SLUG/ 2>/dev/null || true
-          cp -R templates release/$SLUG/ 2>/dev/null || true
-
-          cp ${{ steps.pluginfile.outputs.plugin_file }} release/$SLUG/
-          [ -f uninstall.php ] && cp uninstall.php release/$SLUG/
-          [ -f README.md ] && cp README.md release/$SLUG/
-          [ -f readme.txt ] && cp readme.txt release/$SLUG/
-          [ -f changelog.txt ] && cp changelog.txt release/$SLUG/
-          [ -f license.txt ] && cp license.txt release/$SLUG/
-          [ -f LICENSE ] && cp LICENSE release/$SLUG/
+          rsync -av . release/$SLUG/ \
+            --exclude-from='.distignore' \
+            --exclude='.git/' \
+            --exclude='release' \
+            --exclude='*.zip'
 
           cd release
           zip -r ../${SLUG}.zip $SLUG
