@@ -12,6 +12,7 @@ docker-compose.yml
 
 # Environment
 .env
+.env.example
 
 # Git
 .gitignore

@@ -14,7 +14,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class MyPlugin_Class_DB extends MyPlugin_Class_API{
 
-	public function __construct(){
+	public static $instance;
+	public static function init(){
+
+	    if ( is_null( self::$instance ) )
+	        self::$instance = new MyPlugin_Class_DB();
+	    return self::$instance;
+	}
+
+	private function __construct(){
 		/*
 		* https://code.tutsplus.com/tutorials/custom-database-tables-creating-the-table--wp-28124
 		* #blog #gist
@@ -56,11 +64,6 @@ class MyPlugin_Class_DB extends MyPlugin_Class_API{
 		flush_rewrite_rules();
 	}
 	
-	public function uninstall_plugin() {		
-		$this->delete_database();
-		$this->delete_settings();
-	}
-
 	private function install_database(){
 		global $wpdb;
 		
@@ -73,28 +76,5 @@ class MyPlugin_Class_DB extends MyPlugin_Class_API{
 		foreach($sql as $query )
 			dbDelta( $query );
 	}
-	
-	private function delete_database(){		
-		if( get_option('myplugin_delete_db') ){		
-			global $wpdb;
-			$wpdb->query(  "DROP TABLE IF EXISTS ".$wpdb->prefix . "myplugin_table ;" );
-		}		
-	}
-	
-	private function delete_settings(){	
-		if( get_option('myplugin_delete_settings') ){		
-			unregister_setting( 'myplugin_api', 'event_per_page' );
-			unregister_setting( 'myplugin_api', 'myplugin_reminder_enabled' );
-			unregister_setting( 'myplugin_api', 'myplugin_reminder_interval' );
-			unregister_setting( 'myplugin_api', 'myplugin_delete_db' );		
-			unregister_setting( 'myplugin_api', 'myplugin_delete_settings' );
-			delete_option( 'event_per_page' );
-			delete_option( 'myplugin_reminder_enabled' );
-			delete_option( 'myplugin_reminder_interval' );
-			delete_option( 'myplugin_delete_db' );		
-			delete_option( 'myplugin_delete_settings' );
-		}
-	}
 
 }
-$myplugin_db = new MyPlugin_Class_DB();
