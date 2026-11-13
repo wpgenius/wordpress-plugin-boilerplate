@@ -1,0 +1,44 @@
+{
+	"name": "wpgenius/wordpress-plugin-boilerplate",
+	"description": "WordPress plugin boilerplate: a starter kit for building plugins.",
+	"type": "wordpress-plugin",
+	"license": "GPL-2.0-or-later",
+	"homepage": "https://github.com/wpgenius/wordpress-plugin-boilerplate",
+	"require": {
+		"php": ">=7.4"
+	},
+	"require-dev": {
+		"dealerdirect/phpcodesniffer-composer-installer": "^1.0",
+		"php-parallel-lint/php-parallel-lint": "^1.4",
+		"phpcompatibility/phpcompatibility-wp": "^2.1",
+		"wp-cli/i18n-command": "^2.6",
+		"wp-coding-standards/wpcs": "^3.1"
+	},
+	"autoload": {
+		"classmap": [
+			"includes/"
+		]
+	},
+	"config": {
+		"allow-plugins": {
+			"dealerdirect/phpcodesniffer-composer-installer": true
+		},
+		"optimize-autoloader": true,
+		"platform": {
+			"php": "7.4"
+		},
+		"sort-packages": true
+	},
+	"scripts": {
+		"lint": "parallel-lint --exclude vendor --exclude node_modules .",
+		"phpcs": "phpcs",
+		"phpcbf": "phpcbf",
+		"make-pot": "wp i18n make-pot . languages/wordpress-plugin-boilerplate.pot --slug=wordpress-plugin-boilerplate --domain=wordpress-plugin-boilerplate --exclude=vendor,node_modules,build"
+	},
+	"scripts-descriptions": {
+		"lint": "Check every PHP file for syntax errors.",
+		"phpcs": "Check code against WordPress Coding Standards.",
+		"phpcbf": "Automatically fix coding standards issues where possible.",
+		"make-pot": "Regenerate the translation template in languages/."
+	}
+}

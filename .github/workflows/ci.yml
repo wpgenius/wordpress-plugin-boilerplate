@@ -1,0 +1,74 @@
+name: CI
+
+# Checks every pull request (and pushes to main): PHP syntax on each supported
+# PHP version, WordPress Coding Standards, and JS/CSS lint.
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  php-lint:
+    name: PHP ${{ matrix.php }} syntax
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Keep the lowest version in sync with "Requires PHP" in the plugin header.
+        php: ['7.4', '8.0', '8.1', '8.2', '8.3', '8.4']
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+          tools: composer
+
+      - run: composer install --no-interaction --no-progress
+
+      - run: composer lint
+
+  phpcs:
+    name: Coding standards (PHPCS)
+    runs-on: ubuntu-latest
+    # Report-only until the existing code is brought up to WordPress Coding
+    # Standards. Remove this line to make PHPCS block merges.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version: '8.3'
+          coverage: none
+          tools: composer, cs2pr
+
+      - run: composer install --no-interaction --no-progress
+
+      - name: Run PHPCS (annotates the PR diff)
+        run: vendor/bin/phpcs -q --report-full --report-checkstyle=./phpcs-report.xml || (cs2pr ./phpcs-report.xml && exit 1)
+
+  js-css-lint:
+    name: JS and CSS lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run lint
