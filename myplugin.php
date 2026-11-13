@@ -19,7 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 define( 'MYPLUGIN_DIR_URL', plugin_dir_url( __FILE__ ) );
 define( 'MYPLUGIN_DIR_PATH', plugin_dir_path( __FILE__ ) );
 
-include_once MYPLUGIN_DIR_PATH.'includes/class-init.php';
+include_once MYPLUGIN_DIR_PATH.'includes/class-api.php';
 include_once MYPLUGIN_DIR_PATH.'includes/class-database.php';
 include_once MYPLUGIN_DIR_PATH.'includes/class-ajax.php';
 include_once MYPLUGIN_DIR_PATH.'includes/class-admin.php';
@@ -44,6 +44,9 @@ function myplugin_translations(){
     }  
 }
 
+if(class_exists('MyPlugin_Class_DB'))
+	MyPlugin_Class_DB::init();
+
 if(class_exists('MyPlugin_Class_Actions'))
  	MyPlugin_Class_Actions::init();
 
@@ -59,6 +62,6 @@ if(class_exists('MyPlugin_Class_Admin') && is_admin())
 if(class_exists('MyPlugin_Class_Settings'))
  	MyPlugin_Class_Settings::init();
 
-register_activation_hook( 	__FILE__, array( $myplugin_db, 'activate_plugin' 	) );
-register_deactivation_hook( __FILE__, array( $myplugin_db, 'deactivate_plugin' ) );
-register_activation_hook( __FILE__, function(){ register_uninstall_hook( __FILE__, array( 'MyPlugin_Class_DB', 'uninstall_plugin' ) ); });
+register_activation_hook( 	__FILE__, array( MyPlugin_Class_DB::init(), 'activate_plugin' 	) );
+register_deactivation_hook( __FILE__, array( MyPlugin_Class_DB::init(), 'deactivate_plugin' ) );
+// Uninstall cleanup lives in uninstall.php (WordPress ignores register_uninstall_hook when that file exists).
