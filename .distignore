@@ -6,8 +6,6 @@
 /.github
 /bin
 /.wordpress-org
-/.claude-plugin
-/claude
 
 # Git
 .git

@@ -110,8 +110,7 @@ Your plugin:
 ```
 
 It renames every file, class, constant, function, option, hook, block and text
-domain, fills in the plugin header, resets the version to 1.0.0, and removes
-this repo's own Claude Code plugin (`claude/`, `.claude-plugin/`).
+domain, fills in the plugin header and resets the version to 1.0.0.
 
 You can also pass everything at once, e.g. for scripts:
 
@@ -239,29 +238,28 @@ in any WordPress plugin or theme repo, not only in plugins started from this one
 
 ### With Claude Code (optional)
 
-This repo is also a Claude Code plugin marketplace with one plugin, **repo-standard**.
-Install it once on your computer:
+The Claude Code plugin **[wp-repo-standard](https://github.com/wpgenius/wp-repo-standard)**
+does all of this for you. Install it once:
 
 ```bash
-claude plugin marketplace add wpgenius/wordpress-plugin-boilerplate
+claude plugin marketplace add wpgenius/wp-repo-standard
 ```
 
 ```bash
-claude plugin install repo-standard@wpgenius
+claude plugin install wp-repo-standard@wpgenius
 ```
 
-Inside Claude Code the same is `/plugin marketplace add wpgenius/wordpress-plugin-boilerplate`
-and then `/plugin install repo-standard@wpgenius`. It adds two commands, available in every repo:
+Inside Claude Code the same is `/plugin marketplace add wpgenius/wp-repo-standard`
+and then `/plugin install wp-repo-standard@wpgenius`. It adds two commands, available in every repo:
 
 | Command | What it does |
 |---|---|
-| `/repo-standard:adopt` | Audits the current plugin or theme repo against this standard, then adds the files and GitHub settings in one pull request (one issue per change). Code restructuring is only proposed. |
-| `/repo-standard:new` | Starts a new plugin from this boilerplate: the rename steps above, version 1.0.0, the GitHub repo and its settings. |
+| `/wp-repo-standard:adopt` | Audits the current plugin or theme repo against this standard, then adds the files and GitHub settings in one pull request (one issue per change). Code restructuring is only proposed. |
+| `/wp-repo-standard:new` | Starts a new plugin from this boilerplate: the rename steps above, version 1.0.0, the GitHub repo and its settings. |
 
-The commands always use the latest `main` of this repo, so they pick up changes to
-the standard automatically. They work in Claude Code on your own computer (terminal,
-desktop app, IDE). Cloud sessions on claude.ai don't load plugins installed on your
-computer.
+The commands always use the latest `main` of this repo, so changes to the standard
+reach them without a plugin update. Issues and changes to the plugin itself belong in
+[wpgenius/wp-repo-standard](https://github.com/wpgenius/wp-repo-standard).
 
 ### By hand
 
@@ -346,7 +344,6 @@ don't need the same way.
 | `bin/rename.sh` | Turns the boilerplate into your plugin (names, namespace, version) |
 | `bin/setup-github.sh` | One-time GitHub settings for a new repo |
 | `CONTRIBUTING.md`, `SECURITY.md`, `.github/ISSUE_TEMPLATE/` | How to contribute and report security issues |
-| `.claude-plugin/`, `claude/repo-standard/` | Claude Code plugin with `/repo-standard:adopt` and `/repo-standard:new` (not shipped) |
 | `docker-compose.yml`, `.env.example` | Local WordPress + MariaDB + phpMyAdmin |
 | `composer.json`, `phpcs.xml.dist`, `phpstan.neon.dist`, `phpunit.xml.dist` | PHP dev tools: coding standards, static analysis, tests |
 | `package.json` | Block build and JS/CSS lint (`@wordpress/scripts`) |
