@@ -11,10 +11,13 @@
 #   - merges: squash only; commit message = PR title + PR body; delete branch on merge
 #   - labels: release:minor, release:major (bump the automatic version)
 #   - variable DEPLOY_ENABLED=false (only if not set yet), environment "production"
+#   - deploy key "release-bot" (write) + secret RELEASE_DEPLOY_KEY: the release
+#     workflow pushes its version-bump commit to main with this key
 #   - ruleset "Protect main" on the default branch: no deletion, no force-push,
 #     PRs required (squash), "Linked issue" check required.
 #     Bypass: repository admins (so you can still edit on GitHub directly) and
-#     GitHub Actions (so the release workflow can commit the version bump).
+#     deploy keys (so the release workflow can commit the version bump).
+#     GitHub Actions' own token cannot be a bypass actor, hence the deploy key.
 set -euo pipefail
 
 command -v gh >/dev/null || { echo "Install the GitHub CLI first: https://cli.github.com" >&2; exit 1; }
@@ -46,8 +49,22 @@ else
 fi
 gh api --silent -X PUT "repos/$repo/environments/production"
 
+echo "- release deploy key"
+if gh secret list --repo "$repo" --json name --jq '.[].name' | grep -qx RELEASE_DEPLOY_KEY; then
+	echo "  RELEASE_DEPLOY_KEY already set; left as is"
+else
+	command -v ssh-keygen >/dev/null || { echo "ssh-keygen is required" >&2; exit 1; }
+	keydir=$(mktemp -d)
+	trap 'rm -rf "$keydir"' EXIT
+	ssh-keygen -q -t ed25519 -N '' -C "release-bot@$repo" -f "$keydir/key"
+	gh repo deploy-key add "$keydir/key.pub" --repo "$repo" --title release-bot --allow-write >/dev/null
+	gh secret set RELEASE_DEPLOY_KEY --repo "$repo" < "$keydir/key"
+	rm -rf "$keydir"
+	echo "  deploy key 'release-bot' added; private key stored as secret RELEASE_DEPLOY_KEY"
+fi
+
 echo "- ruleset 'Protect main'"
-# actor_id 5 = the "Admin" repository role; 15368 = the GitHub Actions app.
+# actor_id 5 = the "Admin" repository role; DeployKey = any deploy key with write access.
 ruleset=$(cat <<'JSON'
 {
   "name": "Protect main",
@@ -56,7 +73,7 @@ ruleset=$(cat <<'JSON'
   "conditions": { "ref_name": { "include": ["~DEFAULT_BRANCH"], "exclude": [] } },
   "bypass_actors": [
     { "actor_type": "RepositoryRole", "actor_id": 5, "bypass_mode": "always" },
-    { "actor_type": "Integration", "actor_id": 15368, "bypass_mode": "always" }
+    { "actor_type": "DeployKey", "actor_id": null, "bypass_mode": "always" }
   ],
   "rules": [
     { "type": "deletion" },

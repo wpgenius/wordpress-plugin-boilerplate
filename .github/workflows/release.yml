@@ -10,7 +10,7 @@ name: Release
 #      (one line per issue the released PRs closed).
 #   2. Write Version (plugin header), Stable tag and the changelog entry
 #      (readme.txt), and commit that to main as "Release vX.Y.Z [skip ci]".
-#      Needs the "Protect main" ruleset to let GitHub Actions bypass.
+#      Pushed with the RELEASE_DEPLOY_KEY deploy key, which the ruleset lets bypass.
 #   3. Tag that commit, build the zip from it, publish the GitHub release.
 #   4. Deploy, only while the repo variable DEPLOY_ENABLED is 'true'.
 #
@@ -51,6 +51,10 @@ jobs:
         with:
           ref: main
           fetch-depth: 0
+          # Pushes the release commit with the "release-bot" deploy key, which the
+          # "Protect main" ruleset lets bypass (bin/setup-github.sh sets both up).
+          # Without the secret it falls back to the workflow token (unprotected repos).
+          ssh-key: ${{ secrets.RELEASE_DEPLOY_KEY }}
 
       - name: Plan release
         id: plan
@@ -74,7 +78,7 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git commit --all --message "Release $TAG [skip ci]" --message "$(cat "$CHANGELOG_FILE")"
           if ! git push origin HEAD:main; then
-            echo "::error::Could not push the release commit to main. Check that the 'Protect main' ruleset lists GitHub Actions as a bypass actor (bin/setup-github.sh does this), or that main has not moved during the run."
+            echo "::error::Could not push the release commit to main. Check that the RELEASE_DEPLOY_KEY secret and the 'release-bot' deploy key exist and that the 'Protect main' ruleset lets deploy keys bypass (bin/setup-github.sh sets this up), or that main has not moved during the run."
             exit 1
           fi
           echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"

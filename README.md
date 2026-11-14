@@ -77,7 +77,7 @@ bin/setup-github.sh
 GitHub templates and clones copy files only, so `bin/setup-github.sh` applies the
 settings once: squash-only merges, the `release:minor` / `release:major` labels,
 `DEPLOY_ENABLED=false`, and a "Protect main" ruleset. The ruleset requires PRs
-with a linked issue, and lets repo admins and the release workflow bypass it (see
+with a linked issue, and lets repo admins and the release workflow (through a `release-bot` deploy key it creates) bypass it (see
 [How changes ship](#how-changes-ship)). It needs admin rights on the repo and is
 safe to re-run.
 
