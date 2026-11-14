@@ -18,7 +18,8 @@ The boilerplate ships working examples you can keep, change or delete:
 
 * **Settings page** (Settings → Plugin boilerplate for WordPress) built from one array of fields.
 * **Items** custom post type with a category taxonomy and an image column.
-* **[myplugin_items]** shortcode with an AJAX "Load more" button.
+* **[myplugin_items]** shortcode with a "Load more" button that reads a REST API route.
+* **"Send a test report"** button on the settings page (admin-ajax).
 * **Latest items** block, rendered in PHP.
 * **Daily report** email sent by WP-Cron, with {placeholders} in the subject and message.
 * Templates your theme can override, and a "View details" popup for private plugins.

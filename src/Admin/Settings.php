@@ -75,7 +75,7 @@ class Settings extends Api {
 					'show_load_more' => array(
 						'type'        => 'checkbox',
 						'label'       => __( 'Load more button', 'wordpress-plugin-boilerplate' ),
-						'description' => __( 'Show a button that loads the next page without reloading (AJAX).', 'wordpress-plugin-boilerplate' ),
+						'description' => __( 'Show a button that loads the next page without reloading (REST API).', 'wordpress-plugin-boilerplate' ),
 						'default'     => 1,
 					),
 				),
@@ -321,6 +321,15 @@ class Settings extends Api {
 				submit_button();
 				?>
 			</form>
+
+			<h2><?php esc_html_e( 'Test the report email', 'wordpress-plugin-boilerplate' ); ?></h2>
+			<p>
+				<button type="button" class="button myplugin-test-report" data-nonce="<?php echo esc_attr( wp_create_nonce( \WPGenius\MyPlugin\Ajax::NONCE ) ); ?>">
+					<?php esc_html_e( 'Send a test report to me', 'wordpress-plugin-boilerplate' ); ?>
+				</button>
+				<span class="myplugin-test-report__result" role="status"></span>
+			</p>
+			<p class="description"><?php esc_html_e( 'Uses the saved settings: save your changes first.', 'wordpress-plugin-boilerplate' ); ?></p>
 		</div>
 		<?php
 	}

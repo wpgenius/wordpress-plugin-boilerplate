@@ -12,13 +12,16 @@
 		"dealerdirect/phpcodesniffer-composer-installer": "^1.0",
 		"php-parallel-lint/php-parallel-lint": "^1.4",
 		"phpcompatibility/phpcompatibility-wp": "^2.1",
+		"phpstan/extension-installer": "^1.4",
 		"phpunit/phpunit": "^9.6",
+		"szepeviktor/phpstan-wordpress": "^2.0",
 		"wp-cli/i18n-command": "^2.6",
 		"wp-coding-standards/wpcs": "^3.1"
 	},
 	"config": {
 		"allow-plugins": {
-			"dealerdirect/phpcodesniffer-composer-installer": true
+			"dealerdirect/phpcodesniffer-composer-installer": true,
+			"phpstan/extension-installer": true
 		},
 		"optimize-autoloader": true,
 		"platform": {
@@ -31,14 +34,16 @@
 		"phpcs": "phpcs",
 		"phpcbf": "phpcbf",
 		"make-pot": "wp i18n make-pot . languages/wordpress-plugin-boilerplate.pot --slug=wordpress-plugin-boilerplate --domain=wordpress-plugin-boilerplate --exclude=vendor,node_modules,build",
-		"test": "phpunit"
+		"test": "phpunit",
+		"phpstan": "phpstan analyse --memory-limit=1G"
 	},
 	"scripts-descriptions": {
 		"lint": "Check every PHP file for syntax errors.",
 		"phpcs": "Check code against WordPress Coding Standards.",
 		"phpcbf": "Automatically fix coding standards issues where possible.",
 		"make-pot": "Regenerate the translation template in languages/.",
-		"test": "Run the unit tests (no WordPress install needed)."
+		"test": "Run the unit tests (no WordPress install needed).",
+		"phpstan": "Static analysis (PHPStan, level set in phpstan.neon.dist)."
 	},
 	"autoload-dev": {
 		"psr-4": {

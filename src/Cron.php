@@ -29,7 +29,7 @@ class Cron extends Api {
 	 * Register the job and reschedule it when the settings change.
 	 */
 	public function __construct() {
-		add_action( self::REPORT_HOOK, array( $this, 'send_report' ) );
+		add_action( self::REPORT_HOOK, array( __CLASS__, 'run_report' ) );
 		add_action( 'update_option_' . self::OPTION, array( __CLASS__, 'schedule' ) );
 		add_action( 'add_option_' . self::OPTION, array( __CLASS__, 'schedule' ) );
 	}
@@ -76,11 +76,22 @@ class Cron extends Api {
 	}
 
 	/**
-	 * The job: email how many items were published in the last day.
+	 * The scheduled job (actions must not return a value).
 	 *
 	 * @return void
 	 */
-	public function send_report() {
+	public static function run_report() {
+		self::send_report();
+	}
+
+	/**
+	 * Email how many items were published in the last day.
+	 * Also used by the "Send a test report" button (Ajax.php).
+	 *
+	 * @param string $to Recipient; empty for the "Send to" setting or the admin email.
+	 * @return bool Whether the email was accepted for sending.
+	 */
+	public static function send_report( $to = '' ) {
 		$since = gmdate( 'Y-m-d H:i:s', time() - DAY_IN_SECONDS );
 		$query = new \WP_Query(
 			array(
@@ -98,9 +109,11 @@ class Cron extends Api {
 			)
 		);
 
-		$to = self::get_setting( 'report_to' );
+		if ( '' === $to ) {
+			$to = self::get_setting( 'report_to' );
+		}
 
-		self::send_email(
+		$sent = self::send_email(
 			$to ? $to : get_option( 'admin_email' ),
 			self::get_setting( 'report_subject' ),
 			self::get_setting( 'report_body' ),
@@ -110,6 +123,8 @@ class Cron extends Api {
 			)
 		);
 
-		Installer::log( sprintf( 'Daily report sent (%d items).', (int) $query->found_posts ) );
+		Installer::log( sprintf( 'Daily report %s (%d items).', $sent ? 'sent' : 'failed', (int) $query->found_posts ) );
+
+		return $sent;
 	}
 }

@@ -2,16 +2,17 @@
 /**
  * AJAX handlers (admin-ajax.php).
  *
- * Each action is hooked twice: wp_ajax_* for logged-in users and
- * wp_ajax_nopriv_* for visitors. Drop the nopriv line for admin-only actions,
- * and pass a capability to verify_request().
+ * The admin-ajax endpoint suits small one-off actions in wp-admin, like the "Send a test
+ * report" button on the settings page. For data the front end or blocks read,
+ * prefer a REST route (see Rest.php).
+ *
+ * Each action is hooked as wp_ajax_<action> (logged-in users). Add
+ * wp_ajax_nopriv_<action> only if visitors may call it too.
  *
  * @package WPGenius\MyPlugin
  */
 
 namespace WPGenius\MyPlugin;
-
-use WPGenius\MyPlugin\PostTypes\Example;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -21,7 +22,7 @@ defined( 'ABSPATH' ) || exit;
 class Ajax extends Api {
 
 	/**
-	 * Nonce action shared with assets/js/frontend.js (via mypluginData.nonce).
+	 * Nonce action for the test email button (assets/js/admin.js).
 	 */
 	const NONCE = 'myplugin_ajax';
 
@@ -29,40 +30,32 @@ class Ajax extends Api {
 	 * Register AJAX actions.
 	 */
 	public function __construct() {
-		add_action( 'wp_ajax_myplugin_load_items', array( $this, 'load_items' ) );
-		add_action( 'wp_ajax_nopriv_myplugin_load_items', array( $this, 'load_items' ) );
+		add_action( 'wp_ajax_myplugin_send_test_report', array( $this, 'send_test_report' ) );
 	}
 
 	/**
-	 * "Load more": return the HTML of the next page of items.
+	 * Send the daily report now, to the current user, with the saved settings.
 	 *
-	 * Request: action=myplugin_load_items, nonce, page, per_page.
-	 * Response: { success: true, data: { html, has_more } }.
+	 * Request: action=myplugin_send_test_report, nonce.
+	 * Response: { success: bool, data: { message } }.
 	 *
 	 * @return void
 	 */
-	public function load_items() {
-		if ( ! self::verify_request( self::NONCE ) ) {
-			wp_send_json_error( array( 'message' => __( 'Your session has expired. Reload the page.', 'wordpress-plugin-boilerplate' ) ), 403 );
+	public function send_test_report() {
+		if ( ! self::verify_request( self::NONCE, 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'You are not allowed to do this, or the page has expired. Reload it and try again.', 'wordpress-plugin-boilerplate' ) ), 403 );
 		}
 
-		// phpcs:disable WordPress.Security.NonceVerification.Missing -- Checked above.
-		$page     = isset( $_POST['page'] ) ? absint( $_POST['page'] ) : 1;
-		$per_page = isset( $_POST['per_page'] ) ? min( 50, absint( $_POST['per_page'] ) ) : (int) self::get_setting( 'items_per_page' );
-		// phpcs:enable
+		$user = wp_get_current_user();
 
-		$query = Example::query( $per_page, $page );
-		$html  = '';
-		while ( $query->have_posts() ) {
-			$query->the_post();
-			$html .= self::render_template( 'item.php', array( 'post' => get_post() ) );
+		if ( ! Cron::send_report( $user->user_email ) ) {
+			wp_send_json_error( array( 'message' => __( 'The email could not be sent. Check that this site can send email.', 'wordpress-plugin-boilerplate' ) ), 500 );
 		}
-		wp_reset_postdata();
 
 		wp_send_json_success(
 			array(
-				'html'     => $html,
-				'has_more' => $page < (int) $query->max_num_pages,
+				/* translators: %s: email address. */
+				'message' => sprintf( __( 'Test report sent to %s.', 'wordpress-plugin-boilerplate' ), $user->user_email ),
 			)
 		);
 	}

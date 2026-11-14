@@ -18,16 +18,17 @@ Rename it with one command and start building.
   at runtime: it runs straight from a clone or a zip.
 - A **settings page built from one array**: add a field in one line and get it
   registered, sanitised, rendered and readable with `get_setting()`.
-- Working examples: a custom post type with an admin column, a shortcode with
-  an AJAX "Load more" button, a dynamic block, a scheduled email with
+- Working examples: a custom post type with an admin column, a REST API route,
+  a shortcode with a "Load more" button that uses it, an admin-ajax action, a dynamic block, a scheduled email with
   `{placeholders}`, theme-overridable templates, and a "View details" popup for
   plugins that aren't on WordPress.org.
 - Activation, upgrades and an uninstall that only deletes data when asked.
   Multisite aware.
 
 **The workflow around it**
-- WordPress Coding Standards, PHP compatibility (7.4–8.4), unit tests, JS/CSS
-  lint and WordPress Plugin Check, all run on every pull request.
+- WordPress Coding Standards, PHPStan static analysis, PHP compatibility
+  (7.4–8.4), unit tests, JS/CSS lint and WordPress Plugin Check, all run on
+  every pull request.
 - **Automatic releases:** merge a pull request and, if the plugin changed, a new
   version is tagged, the changelog is written from the closed issues, and a
   zip is published. Docs-only changes don't make a release.
@@ -166,6 +167,7 @@ composer install
 |---|---|
 | `composer lint` | PHP syntax check |
 | `composer phpcs` / `composer phpcbf` | WordPress Coding Standards (check / auto-fix) |
+| `composer phpstan` | Static analysis: wrong types, missing methods, unchecked `false`/`WP_Error` (level in `phpstan.neon.dist`) |
 | `composer test` | Unit tests (PHPUnit + Brain Monkey) |
 | `composer make-pot` | Regenerate `languages/*.pot` |
 | `npm ci` | Install the JS tools |
@@ -185,7 +187,7 @@ issue  →  branch  →  pull request (Closes #N)  →  squash merge to main  �
 - **Every PR closes an issue.** The *Linked issue* check fails a PR whose
   description has no `Closes #N`. One request with several changes = one issue per
   change, delivered in one PR.
-- **CI** runs on every PR: PHP 7.4–8.4 syntax, unit tests, PHPCS, JS/CSS lint, block build and WordPress Plugin Check.
+- **CI** runs on every PR: PHP 7.4–8.4 syntax, unit tests, PHPCS, PHPStan, JS/CSS lint, block build and WordPress Plugin Check.
   Plugin Check fails when `Tested up to` in `readme.txt` is behind the latest WordPress,
   so bump it after testing each new WordPress version. In the boilerplate itself it
   also warns about the placeholder names ("plugin" in the name, the `myplugin_`
@@ -285,7 +287,8 @@ src/
 ├── Api.php               shared helpers: get_setting(), verify_request(),
 │                         render_template(), send_email() with {placeholders}, asset_url()
 ├── Installer.php         activation / deactivation, database table, upgrades
-├── Ajax.php              wp_ajax_* handlers ("Load more")
+├── Rest.php              REST routes: GET /wp-json/myplugin/v1/items ("Load more")
+├── Ajax.php              admin-ajax handlers ("Send a test report" button)
 ├── Cron.php              scheduled jobs (daily report email)
 ├── Admin/
 │   ├── Admin.php         admin CSS/JS, Settings link on the Plugins screen
@@ -310,6 +313,11 @@ tests/                    PHPUnit unit tests (Brain Monkey, no WordPress needed)
 with `self::get_setting( 'key' )` (or `Api::get_setting()`). Field types: text,
 textarea, editor, number, checkbox, select, radio, email, url, color, time, password.
 
+**REST or admin-ajax?** Use a REST route (`Rest.php`) for data the front end,
+blocks or other apps read or change: arguments are validated, every route says
+who may call it, and blocks call it with `wp.apiFetch`. admin-ajax (`Ajax.php`)
+is fine for small one-off actions in wp-admin.
+
 **Add a part:** create the class in `src/`, register its hooks in the
 constructor, and add it to the list in `Plugin.php`. Delete the examples you
 don't need the same way.
@@ -326,7 +334,7 @@ don't need the same way.
 | `CONTRIBUTING.md`, `SECURITY.md`, `.github/ISSUE_TEMPLATE/` | How to contribute and report security issues |
 | `.claude-plugin/`, `claude/repo-standard/` | Claude Code plugin with `/repo-standard:adopt` and `/repo-standard:new` (not shipped) |
 | `docker-compose.yml`, `.env.example` | Local WordPress + MariaDB + phpMyAdmin |
-| `composer.json`, `phpcs.xml.dist`, `phpunit.xml.dist` | PHP dev tools: coding standards, tests |
+| `composer.json`, `phpcs.xml.dist`, `phpstan.neon.dist`, `phpunit.xml.dist` | PHP dev tools: coding standards, static analysis, tests |
 | `package.json` | Block build and JS/CSS lint (`@wordpress/scripts`) |
 
 ## License
