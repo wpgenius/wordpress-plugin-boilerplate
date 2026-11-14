@@ -1,0 +1,39 @@
+/* Front end: [myplugin_items] shortcode.
+ * --myplugin-accent comes from the settings. */
+.myplugin-items__list--grid {
+	display: grid;
+	gap: 1.5rem;
+	grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+}
+
+.myplugin-items__list--list .myplugin-item {
+	border-bottom: 1px solid #ddd;
+	padding: 1rem 0;
+}
+
+.myplugin-item img {
+	display: block;
+	height: auto;
+	max-width: 100%;
+}
+
+.myplugin-item__title a {
+	color: var(--myplugin-accent, #2271b1);
+	text-decoration: none;
+}
+
+.myplugin-items__more {
+	background: var(--myplugin-accent, #2271b1);
+	border: 0;
+	border-radius: 4px;
+	color: #fff;
+	cursor: pointer;
+	display: block;
+	margin: 2rem auto 0;
+	padding: 0.75em 1.5em;
+}
+
+.myplugin-items__more[disabled] {
+	cursor: wait;
+	opacity: 0.6;
+}

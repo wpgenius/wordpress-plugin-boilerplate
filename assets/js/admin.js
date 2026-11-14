@@ -1,8 +1,7 @@
-/* global jQuery */
-
 /**
- * Scripts for the admin screens. Enqueued with jQuery as a dependency.
+ * wp-admin: colour pickers on the settings page.
  */
-jQuery( function () {
-	// Code starts here: runs once the DOM is ready.
+/* global jQuery */
+jQuery( function ( $ ) {
+	$( '.myplugin-color-field' ).wpColorPicker();
 } );

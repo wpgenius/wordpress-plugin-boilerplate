@@ -1,55 +1,43 @@
-=== Plugin Name ===
+=== Plugin boilerplate for WordPress ===
 Contributors: mkrndmane
-Tags: wordpress, plugin, custom
-Requires at least: 6.0
+Tags: boilerplate, starter, settings, block, shortcode
+Requires at least: 6.1
 Tested up to: 6.8
 Requires PHP: 7.4
 Stable tag: 2.0.0
-License: GPLv2 or later
-License URI: https://www.gnu.org/licenses/gpl-2.0.html
+License: GPLv3 or later
+License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
-Provides a lightweight framework to add custom shortcodes, widgets, and settings for extending WordPress functionality with minimal configuration.
+A starter plugin with a settings page, a custom post type, a shortcode, a block, AJAX and a scheduled email.
 
 == Description ==
 
-Plugin Name is a WordPress plugin that helps users achieve a specific functionality.
+Replace this text with a description of your plugin.
 
-Features include:
+The boilerplate ships working examples you can keep, change or delete:
 
-* Feature one
-* Feature two
-* Feature three
-* Easy configuration
-* Developer-friendly architecture
-
-This plugin follows WordPress coding standards and is designed to be lightweight, secure, and extensible.
+* **Settings page** (Settings → Plugin boilerplate) built from one array of fields.
+* **Items** custom post type with a category taxonomy and an image column.
+* **[myplugin_items]** shortcode with an AJAX "Load more" button.
+* **Latest items** block, rendered in PHP.
+* **Daily report** email sent by WP-Cron, with {placeholders} in the subject and message.
+* Templates your theme can override, and a "View details" popup for private plugins.
 
 == Installation ==
 
-1. Upload the plugin files to the `/wp-content/plugins/plugin-name` directory, or install the plugin through the WordPress Plugins screen.
-2. Activate the plugin through the 'Plugins' screen in WordPress.
-3. Configure the plugin settings if applicable.
-4. Start using the plugin.
+1. Upload the plugin folder to `/wp-content/plugins/`, or install the zip from Plugins → Add New → Upload.
+2. Activate the plugin on the Plugins screen.
+3. Go to Settings → Plugin boilerplate.
 
 == Frequently Asked Questions ==
 
-= Does this plugin require any additional plugins? =
+= How do I change a template? =
 
-No. The plugin works independently unless otherwise specified.
+Copy a file from the plugin's `templates/` folder to `wp-content/themes/<your-theme>/wordpress-plugin-boilerplate/` and edit the copy.
 
-= Is the plugin compatible with the latest WordPress version? =
+= Is my data deleted when I delete the plugin? =
 
-The plugin is regularly tested with the latest supported version of WordPress.
-
-= Can developers extend this plugin? =
-
-Yes. The plugin is built with extensibility in mind and follows WordPress best practices.
-
-== Screenshots ==
-
-1. Main plugin interface.
-2. Plugin settings page.
-3. Example output.
+Only if "Delete data on uninstall" is ticked in the settings.
 
 == Changelog ==
 
@@ -69,24 +57,3 @@ Yes. The plugin is built with extensibility in mind and follows WordPress best p
 * Require pull requests to link an issue (#16)
 * GitHub setup script for repos created from this template (#17)
 * README: getting started and repo workflow (#18)
-
-== Upgrade Notice ==
-
-= 1.0.0 =
-Initial pre-release.
-
-== Developers ==
-
-Plugin structure follows modern WordPress development practices.
-
-Hooks, filters, and APIs may be documented here for developers.
-
-== Credits ==
-
-Developed by Your Name or Company.
-
-== License ==
-
-This plugin is licensed under the GPL v2 or later.
-
-This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation.
