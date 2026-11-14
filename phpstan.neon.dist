@@ -1,0 +1,17 @@
+# Static analysis: finds wrong types, calls to things that don't exist,
+# unchecked WordPress return values (false, WP_Error, null) and dead code.
+# WordPress functions are known through szepeviktor/phpstan-wordpress.
+#
+#   composer phpstan
+#
+# Raise the level (max 10) as the code gets stricter. Templates are left out:
+# their variables come from Api::render_template(), which PHPStan can't see.
+parameters:
+	level: 5
+	phpVersion: 70400
+	paths:
+		- myplugin.php
+		- uninstall.php
+		- src
+	bootstrapFiles:
+		- tests/phpstan/bootstrap.php

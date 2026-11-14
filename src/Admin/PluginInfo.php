@@ -174,43 +174,51 @@ class PluginInfo extends Api {
 		$para = array();
 		$list = '';
 
-		$close = static function () use ( &$html, &$para, &$list ) {
-			if ( $para ) {
-				$html .= '<p>' . implode( ' ', $para ) . "</p>\n";
-				$para  = array();
-			}
-			if ( $list ) {
-				$html .= "</{$list}>\n";
-				$list  = '';
-			}
-		};
-
 		foreach ( explode( "\n", trim( $text ) ) as $line ) {
 			$line = trim( $line );
 
 			if ( '' === $line ) {
-				$close();
+				self::close_blocks( $html, $para, $list );
 			} elseif ( preg_match( '/^=\s*(.+?)\s*=$/', $line, $m ) ) {
-				$close();
+				self::close_blocks( $html, $para, $list );
 				$html .= '<h4>' . self::inline( $m[1] ) . "</h4>\n";
 			} elseif ( preg_match( '/^(\*|-|\d+\.)\s+(.+)$/', $line, $m ) ) {
 				$type = ctype_digit( rtrim( $m[1], '.' ) ) ? 'ol' : 'ul';
 				if ( $list !== $type ) {
-					$close();
+					self::close_blocks( $html, $para, $list );
 					$html .= "<{$type}>\n";
 					$list  = $type;
 				}
 				$html .= '<li>' . self::inline( $m[2] ) . "</li>\n";
 			} else {
 				if ( $list ) {
-					$close();
+					self::close_blocks( $html, $para, $list );
 				}
 				$para[] = self::inline( $line );
 			}
 		}
-		$close();
+		self::close_blocks( $html, $para, $list );
 
 		return trim( $html );
+	}
+
+	/**
+	 * Close an open paragraph or list (helper of to_html()).
+	 *
+	 * @param string   $html HTML so far.
+	 * @param string[] $para Lines of the open paragraph.
+	 * @param string   $open_list Open list tag ('ul', 'ol') or ''.
+	 * @return void
+	 */
+	private static function close_blocks( &$html, array &$para, &$open_list ) {
+		if ( $para ) {
+			$html .= '<p>' . implode( ' ', $para ) . "</p>\n";
+			$para  = array();
+		}
+		if ( '' !== $open_list ) {
+			$html     .= "</{$open_list}>\n";
+			$open_list = '';
+		}
 	}
 
 	/**

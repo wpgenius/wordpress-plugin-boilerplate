@@ -78,7 +78,7 @@ class Example extends Api {
 	}
 
 	/**
-	 * Latest published items, used by the shortcode, the block and the AJAX "Load more".
+	 * Latest published items, used by the shortcode, the block and the REST route (Load more).
 	 *
 	 * @param int $per_page Items per page.
 	 * @param int $page     Page number, from 1.

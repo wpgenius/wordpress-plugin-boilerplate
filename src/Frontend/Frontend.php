@@ -11,7 +11,7 @@
 namespace WPGenius\MyPlugin\Frontend;
 
 use WPGenius\MyPlugin\Api;
-use WPGenius\MyPlugin\Ajax;
+use WPGenius\MyPlugin\Rest;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -46,9 +46,11 @@ class Frontend extends Api {
 			self::HANDLE,
 			'mypluginData',
 			array(
-				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
-				'nonce'   => wp_create_nonce( Ajax::NONCE ),
-				'i18n'    => array(
+				// REST route used by "Load more" (src/Rest.php). The nonce lets
+				// logged-in users be recognised; visitors don't need it.
+				'itemsUrl' => Rest::url( 'items' ),
+				'nonce'    => wp_create_nonce( 'wp_rest' ),
+				'i18n'     => array(
 					'loading' => __( 'Loading…', 'wordpress-plugin-boilerplate' ),
 					'error'   => __( 'Something went wrong. Please try again.', 'wordpress-plugin-boilerplate' ),
 				),

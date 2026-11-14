@@ -31,4 +31,4 @@ register_activation_hook( __FILE__, array( 'WPGenius\MyPlugin\Installer', 'activ
 register_deactivation_hook( __FILE__, array( 'WPGenius\MyPlugin\Installer', 'deactivate' ) );
 // Cleanup when the plugin is deleted lives in uninstall.php.
 
-add_action( 'plugins_loaded', array( 'WPGenius\MyPlugin\Plugin', 'instance' ) );
+add_action( 'plugins_loaded', array( 'WPGenius\MyPlugin\Plugin', 'boot' ) );

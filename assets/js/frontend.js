@@ -1,8 +1,9 @@
 /**
  * Front end: the "Load more" button of the [myplugin_items] shortcode.
- * Calls the myplugin_load_items AJAX action (src/Ajax.php) and appends the HTML.
+ * Reads the next page from the REST route GET /wp-json/myplugin/v1/items
+ * (src/Rest.php) and appends its rendered HTML.
  *
- * mypluginData (ajaxUrl, nonce, i18n) comes from src/Frontend/Frontend.php.
+ * mypluginData (itemsUrl, nonce, i18n) comes from src/Frontend/Frontend.php.
  */
 /* global mypluginData */
 ( function () {
@@ -18,29 +19,29 @@
 		const page = parseInt( button.dataset.page, 10 ) + 1;
 		const label = button.textContent;
 
-		const body = new URLSearchParams( {
-			action: 'myplugin_load_items',
-			nonce: mypluginData.nonce,
-			page,
-			per_page: button.dataset.perPage,
-		} );
+		const url = new URL( mypluginData.itemsUrl );
+		url.searchParams.set( 'page', page );
+		url.searchParams.set( 'per_page', button.dataset.perPage );
 
 		button.disabled = true;
 		button.textContent = mypluginData.i18n.loading;
 
-		fetch( mypluginData.ajaxUrl, {
-			method: 'POST',
+		fetch( url, {
 			credentials: 'same-origin',
-			body,
+			headers: { 'X-WP-Nonce': mypluginData.nonce },
 		} )
-			.then( ( response ) => response.json() )
-			.then( ( result ) => {
-				if ( ! result.success ) {
-					throw new Error( result.data && result.data.message );
-				}
-				list.insertAdjacentHTML( 'beforeend', result.data.html );
+			.then( ( response ) =>
+				response.json().then( ( data ) => {
+					if ( ! response.ok ) {
+						throw new Error( data && data.message );
+					}
+					return data;
+				} )
+			)
+			.then( ( data ) => {
+				list.insertAdjacentHTML( 'beforeend', data.html );
 				button.dataset.page = page;
-				if ( ! result.data.has_more ) {
+				if ( ! data.has_more ) {
 					button.remove();
 				}
 			} )

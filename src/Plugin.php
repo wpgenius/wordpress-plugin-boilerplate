@@ -32,7 +32,16 @@ final class Plugin {
 	private $parts = array();
 
 	/**
-	 * Start the plugin (hooked to plugins_loaded) and return the running instance.
+	 * Start the plugin. Hooked to plugins_loaded in the main plugin file.
+	 *
+	 * @return void
+	 */
+	public static function boot() {
+		self::instance();
+	}
+
+	/**
+	 * The running instance (created on first call).
 	 *
 	 * @return Plugin
 	 */
@@ -54,6 +63,7 @@ final class Plugin {
 			Installer::class,
 			PostTypes\PostTypes::class,
 			Blocks\Blocks::class,
+			Rest::class,
 			Ajax::class,
 			Cron::class,
 			Frontend\Frontend::class,
