@@ -3,7 +3,10 @@
  * Starts the plugin: creates each part once.
  *
  * To add a part, create its class in src/ and add it to the list below.
- * To remove an example you don't need, delete its line and its file.
+ * Three examples are optional and marked "Example: <name>" wherever they
+ * appear: report (daily email: Cron.php, Ajax.php), table (the log table in
+ * Installer.php) and plugin-info (Admin/PluginInfo.php). `bin/rename.sh --minimal`
+ * removes all three; to remove one by hand, search for its marker.
  *
  * @package WPGenius\MyPlugin
  */
@@ -64,8 +67,8 @@ final class Plugin {
 			PostTypes\PostTypes::class,
 			Blocks\Blocks::class,
 			Rest::class,
-			Ajax::class,
-			Cron::class,
+			Ajax::class, // Example: report.
+			Cron::class, // Example: report.
 			Frontend\Frontend::class,
 			Frontend\Shortcodes::class,
 		);
@@ -74,7 +77,7 @@ final class Plugin {
 		if ( is_admin() ) {
 			$parts[] = Admin\Admin::class;
 			$parts[] = Admin\Settings::class;
-			$parts[] = Admin\PluginInfo::class;
+			$parts[] = Admin\PluginInfo::class; // Example: plugin-info.
 		}
 
 		foreach ( $parts as $part ) {

@@ -10,7 +10,7 @@
 namespace WPGenius\MyPlugin\Tests\Integration;
 
 use WPGenius\MyPlugin\Api;
-use WPGenius\MyPlugin\Cron;
+use WPGenius\MyPlugin\Cron; // Example: report.
 use WPGenius\MyPlugin\Installer;
 
 /**
@@ -45,11 +45,11 @@ class MultisiteTest extends \WP_UnitTestCase {
 
 		switch_to_blog( $site );
 		$settings = get_option( Api::OPTION );
-		$version  = get_option( Installer::DB_VERSION_OPTION );
+		$version  = get_option( Installer::DB_VERSION_OPTION ); // Example: table.
 		restore_current_blog();
 
 		$this->assertIsArray( $settings );
-		$this->assertSame( Installer::DB_VERSION, $version );
+		$this->assertSame( Installer::DB_VERSION, $version ); // Example: table.
 	}
 
 	public function test_a_new_site_is_left_alone_when_the_plugin_is_not_network_active() {
@@ -62,6 +62,7 @@ class MultisiteTest extends \WP_UnitTestCase {
 
 		$this->assertFalse( $settings );
 	}
+	// Example: report (start).
 
 	public function test_network_deactivation_removes_the_report_from_every_site() {
 		$sites = array( get_current_blog_id(), self::factory()->blog->create() );
@@ -79,6 +80,8 @@ class MultisiteTest extends \WP_UnitTestCase {
 			restore_current_blog();
 		}
 	}
+	// Example: report (end).
+	// Example: table (start).
 
 	public function test_the_log_table_is_dropped_with_its_site() {
 		global $wpdb;
@@ -88,4 +91,5 @@ class MultisiteTest extends \WP_UnitTestCase {
 
 		$this->assertContains( $wpdb->get_blog_prefix( $site ) . 'myplugin_log', $tables );
 	}
+	// Example: table (end).
 }

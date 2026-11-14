@@ -123,7 +123,7 @@ class Cron extends Api {
 			)
 		);
 
-		Installer::log( sprintf( 'Daily report %s (%d items).', $sent ? 'sent' : 'failed', (int) $query->found_posts ) );
+		Installer::log( sprintf( 'Daily report %s (%d items).', $sent ? 'sent' : 'failed', (int) $query->found_posts ) ); // Example: table.
 
 		return $sent;
 	}

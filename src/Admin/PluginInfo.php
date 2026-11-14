@@ -6,7 +6,8 @@
  * For a private plugin this class answers that request itself, so the popup
  * shows the description, installation notes, FAQ and changelog from readme.txt.
  *
- * Delete this file (and its line in Plugin.php) if your plugin is on WordPress.org.
+ * This is the "plugin-info" example: delete this file and its line in Plugin.php
+ * (or run bin/rename.sh --minimal) if your plugin is on WordPress.org.
  *
  * @package WPGenius\MyPlugin
  */

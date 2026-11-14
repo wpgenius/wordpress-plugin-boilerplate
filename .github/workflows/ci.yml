@@ -144,23 +144,43 @@ jobs:
           tools: composer
 
       # Only the boilerplate has myplugin.php; a plugin made from it skips this.
-      - name: Rename a copy to "Acme Events" and test it
+      # Two copies are renamed and checked: one with every example, one --minimal.
+      - name: Rename to "Acme Events" (full and minimal) and test both
         run: |
           set -euo pipefail
           if [ ! -f myplugin.php ]; then
             echo "Already renamed; nothing to check."
             exit 0
           fi
+          check() {
+            test -f acme-events.php
+            if grep -rIn --exclude-dir={.git,vendor,node_modules} --exclude={README.md,rename.sh,composer.lock,package-lock.json} -ie myplugin .; then
+              echo "::error::bin/rename.sh left the names above behind."
+              exit 1
+            fi
+            composer install --no-interaction --no-progress
+            composer lint
+            composer test
+            vendor/bin/phpcs -q
+            composer phpstan -- --no-progress
+          }
+          cp -R . "$RUNNER_TEMP/minimal"
+
+          echo "::group::Full"
           bin/rename.sh "Acme Events" --vendor Acme --author "Acme Inc" --yes
-          test -f acme-events.php
-          if grep -rIn --exclude-dir={.git,vendor,node_modules} --exclude={README.md,rename.sh,composer.lock,package-lock.json} -ie myplugin .; then
-            echo "::error::bin/rename.sh left the names above behind."
+          check
+          echo "::endgroup::"
+
+          echo "::group::Minimal"
+          cd "$RUNNER_TEMP/minimal"
+          bin/rename.sh "Acme Events" --vendor Acme --author "Acme Inc" --minimal --yes
+          if grep -rIn --exclude-dir={.git,.github,vendor,node_modules,build,languages} --exclude={README.md,rename.sh,phpcs.xml.dist} \
+            -e 'Example: ' -e 'Cron::' -e 'Ajax::' -e 'PluginInfo' -e 'DB_VERSION' .; then
+            echo "::error::--minimal left parts of the removed examples behind (lines above)."
             exit 1
           fi
-          composer install --no-interaction --no-progress
-          composer lint
-          composer test
-          composer phpstan -- --no-progress
+          check
+          echo "::endgroup::"
 
   integration:
     name: Integration tests (WordPress ${{ matrix.wp.name }})

@@ -80,6 +80,7 @@ class Settings extends Api {
 					),
 				),
 			),
+			// Example: report (start).
 			'report'   => array(
 				'title'       => __( 'Daily report email', 'wordpress-plugin-boilerplate' ),
 				'description' => __( 'A scheduled (cron) email with the number of items published in the last day.', 'wordpress-plugin-boilerplate' ),
@@ -115,6 +116,7 @@ class Settings extends Api {
 					),
 				),
 			),
+			// Example: report (end).
 			'advanced' => array(
 				'title'  => __( 'Advanced', 'wordpress-plugin-boilerplate' ),
 				'fields' => array(
@@ -321,6 +323,7 @@ class Settings extends Api {
 				submit_button();
 				?>
 			</form>
+			<?php // Example: report (start). ?>
 
 			<h2><?php esc_html_e( 'Test the report email', 'wordpress-plugin-boilerplate' ); ?></h2>
 			<p>
@@ -330,6 +333,7 @@ class Settings extends Api {
 				<span class="myplugin-test-report__result" role="status"></span>
 			</p>
 			<p class="description"><?php esc_html_e( 'Uses the saved settings: save your changes first.', 'wordpress-plugin-boilerplate' ); ?></p>
+			<?php // Example: report (end). ?>
 		</div>
 		<?php
 	}

@@ -30,6 +30,10 @@
 	<rule ref="Squiz.Commenting.FunctionComment.Missing">
 		<exclude-pattern>/tests/*</exclude-pattern>
 	</rule>
+	<!-- An "Example: <name>" marker above a test method is not its doc comment. -->
+	<rule ref="Squiz.Commenting.FunctionComment.WrongStyle">
+		<exclude-pattern>/tests/*</exclude-pattern>
+	</rule>
 	<rule ref="Squiz.Commenting.FileComment.Missing">
 		<exclude-pattern>/tests/bootstrap.php</exclude-pattern>
 		<exclude-pattern>/tests/Integration/bootstrap.php</exclude-pattern>
