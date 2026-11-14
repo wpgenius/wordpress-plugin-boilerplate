@@ -1,16 +1,23 @@
 #!/usr/bin/env bash
 # Shared helpers for the release and deploy workflows. Source, don't execute.
 
-# Main plugin file: the PHP file in the repo root with a "Plugin Name:" header.
+# File that holds the version header, in the repo root:
+#   plugin: the PHP file with a "Plugin Name:" header
+#   theme:  style.css with a "Theme Name:" header
 main_plugin_file() {
 	local f
 	for f in *.php; do
+		[ -f "$f" ] || continue
 		if head -n 30 "$f" | grep -qiE '^[[:space:]/*#@]*Plugin Name:'; then
 			echo "$f"
 			return 0
 		fi
 	done
-	echo "::error::No PHP file with a 'Plugin Name:' header found in the repo root" >&2
+	if [ -f style.css ] && head -n 30 style.css | grep -qiE '^[[:space:]/*#@]*Theme Name:'; then
+		echo "style.css"
+		return 0
+	fi
+	echo "::error::No plugin file ('Plugin Name:' header in a root .php file) or theme stylesheet ('Theme Name:' header in style.css) found in the repo root" >&2
 	return 1
 }
 
