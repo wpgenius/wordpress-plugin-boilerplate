@@ -4,7 +4,7 @@ Tags: boilerplate, starter, settings, block, shortcode
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 2.0.7
+Stable tag: 2.0.8
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -49,6 +49,10 @@ Only if "Delete data on uninstall" is ticked in the settings.
 4. The Items with live filter block, filtering as you type.
 
 == Changelog ==
+
+= 2.0.8 =
+
+* rename.sh --minimal: start without the example features (#81)
 
 = 2.0.7 =
 
