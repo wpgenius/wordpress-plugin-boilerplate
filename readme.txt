@@ -4,7 +4,7 @@ Tags: boilerplate, starter, settings, block, shortcode
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 2.0.6
+Stable tag: 2.0.7
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -49,6 +49,19 @@ Only if "Delete data on uninstall" is ticked in the settings.
 4. The Items with live filter block, filtering as you type.
 
 == Changelog ==
+
+= 2.0.7 =
+
+* Move the Claude Code plugin to wpgenius/wp-repo-standard (#69)
+* verify_request() requires a capability (#72)
+* Release is skipped for a pull request whose title starts with "Release v" (#73)
+* Integration tests in a real WordPress (#74)
+* README: your first feature in 10 minutes (#75)
+* Rename script keeps the boilerplate author's WordPress.org username (#76)
+* Dependabot for npm and Composer (#77)
+* Test that every class file matches its class name (#78)
+* Make the linked-issue rule a choice in setup-github.sh (#79)
+* Pull request template: say when a merge makes a release (#80)
 
 = 2.0.6 =
 
