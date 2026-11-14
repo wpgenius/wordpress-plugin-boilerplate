@@ -174,6 +174,10 @@ issue  →  branch  →  pull request (Closes #N)  →  squash merge to main  �
   description has no `Closes #N`. One request with several changes = one issue per
   change, delivered in one PR.
 - **CI** runs on every PR: PHP 7.4–8.4 syntax, unit tests, PHPCS, JS/CSS lint, block build and WordPress Plugin Check.
+  Plugin Check fails when `Tested up to` in `readme.txt` is behind the latest WordPress,
+  so bump it after testing each new WordPress version. In the boilerplate itself it
+  also warns about the placeholder names ("plugin" in the name, the `myplugin_`
+  prefix); those warnings go away once you run `bin/rename.sh`.
 - **Releases are automatic.** On each merge to `main`, the
   [Release workflow](.github/workflows/release.yml):
   1. releases only if the plugin zip would change: it compares the package
