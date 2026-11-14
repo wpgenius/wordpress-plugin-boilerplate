@@ -4,7 +4,7 @@ Tags: boilerplate, starter, settings, block, shortcode
 Requires at least: 6.1
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 2.0.3
+Stable tag: 2.0.4
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -41,6 +41,11 @@ Copy a file from the plugin's `templates/` folder to `wp-content/themes/<your-th
 Only if "Delete data on uninstall" is ticked in the settings.
 
 == Changelog ==
+
+= 2.0.4 =
+
+* Static analysis with PHPStan (#49)
+* REST API endpoint example (#50)
 
 = 2.0.3 =
 
