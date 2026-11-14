@@ -47,7 +47,7 @@ class Shortcodes extends Api {
 
 		Frontend::enqueue_assets();
 
-		$per_page = max( 1, absint( $atts['per_page'] ) );
+		$per_page = Example::per_page( $atts['per_page'] );
 
 		return self::render_template(
 			'items-list.php',

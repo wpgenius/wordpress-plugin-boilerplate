@@ -5,6 +5,11 @@ name: CI
 # each supported PHP version, WordPress Coding Standards, JS/CSS lint, and that
 # the committed block build in build/ matches the sources in blocks/, and the
 # official WordPress Plugin Check on the plugin as it ships (the release zip).
+# In the boilerplate itself it also renames a copy and tests the result.
+#
+# The last job, "CI", passes only when every other job passed. It is the one
+# check the "Protect main" ruleset requires (bin/setup-github.sh), so jobs can
+# be added or renamed here without touching the ruleset.
 
 on:
   pull_request:
@@ -27,7 +32,7 @@ jobs:
       fail-fast: false
       matrix:
         # Keep the lowest version in sync with "Requires PHP" in the plugin header.
-        php: ['7.4', '8.0', '8.1', '8.2', '8.3', '8.4']
+        php: ['7.4', '8.0', '8.1', '8.2', '8.3', '8.4', '8.5']
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
@@ -124,3 +129,53 @@ jobs:
         with:
           build-dir: ${{ steps.package.outputs.dir }}
           slug: ${{ steps.package.outputs.slug }}
+
+  rename:
+    name: Rename script
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version: '8.3'
+          coverage: none
+          tools: composer
+
+      # Only the boilerplate has myplugin.php; a plugin made from it skips this.
+      - name: Rename a copy to "Acme Events" and test it
+        run: |
+          set -euo pipefail
+          if [ ! -f myplugin.php ]; then
+            echo "Already renamed; nothing to check."
+            exit 0
+          fi
+          bin/rename.sh "Acme Events" --vendor Acme --author "Acme Inc" --yes
+          test -f acme-events.php
+          if grep -rIn --exclude-dir={.git,vendor,node_modules} --exclude={README.md,rename.sh,composer.lock,package-lock.json} -ie myplugin .; then
+            echo "::error::bin/rename.sh left the names above behind."
+            exit 1
+          fi
+          composer install --no-interaction --no-progress
+          composer lint
+          composer test
+          composer phpstan -- --no-progress
+
+  ci:
+    name: CI
+    # Runs even when a job above failed, so the required check always reports.
+    if: always()
+    needs: [php-lint, phpcs, phpstan, js-css-lint, plugin-check, rename]
+    runs-on: ubuntu-latest
+    steps:
+      - name: All jobs passed
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "Job results: $RESULTS"
+          for result in $RESULTS; do
+            if [ "$result" != success ]; then
+              echo "::error::A CI job did not pass ($result)."
+              exit 1
+            fi
+          done

@@ -94,6 +94,8 @@ while [ ${#FUNC} -gt 15 ]; do
 	FUNC=$(snake "$FUNC")
 done
 CONST=$(printf '%s' "$FUNC" | tr '[:lower:]' '[:upper:]')
+# Hyphenated form, for script handles, CSS classes and URL slugs.
+KEBAB=$(printf '%s' "$FUNC" | tr '_' '-')
 
 [ -n "$SLUG" ] && [ -n "$PREFIX" ] && [ -n "$VENDOR" ] && [ -n "$FUNC" ] || die "the name must contain letters or numbers."
 if [ -n "$GITHUB" ]; then
@@ -109,6 +111,7 @@ Your plugin:
   Folder / slug   $SLUG   (main file: $SLUG.php, text domain: $SLUG)
   PHP namespace   $VENDOR\\$PREFIX   (e.g. $VENDOR\\$PREFIX\\Admin\\Settings)
   Prefix          $FUNC   (options, hooks, functions)   constants: ${CONST}_*
+                  $KEBAB-*   (script handles, CSS classes, URL slugs)
   Author          ${AUTHOR:-(unchanged)}${AUTHOR_URI:+  <$AUTHOR_URI>}
   GitHub          ${GITHUB:-(not set)}
   Version         reset to 1.0.0, changelog emptied
@@ -121,7 +124,7 @@ if [ "$YES" -eq 0 ]; then
 fi
 
 # ---------------------------------------------------------------- rename
-export NAME SLUG VENDOR PREFIX CONST FUNC GITHUB OLD_SLUG OLD_NAME OLD_REPO
+export NAME SLUG VENDOR PREFIX CONST FUNC KEBAB GITHUB OLD_SLUG OLD_NAME OLD_REPO
 export DESCRIPTION AUTHOR AUTHOR_URI PLUGIN_URI
 
 files=$(grep -rlI --exclude-dir={.git,vendor,node_modules} \
@@ -137,6 +140,8 @@ if [ -n "$files" ]; then
 			s/WPGenius\\/$ENV{VENDOR}\\/g;
 			s/MyPlugin/$ENV{PREFIX}/g;
 			s/MYPLUGIN/$ENV{CONST}/g;
+			s/myplugin\.php/$ENV{SLUG}.php/g;   # the main file is named after the slug
+			s/myplugin-/$ENV{KEBAB}-/g;          # handles, CSS classes, URL slugs
 			s/myplugin/$ENV{FUNC}/g;
 		' "$f"
 	done

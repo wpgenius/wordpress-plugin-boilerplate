@@ -3,7 +3,7 @@
  * Reads the next page from the REST route GET /wp-json/myplugin/v1/items
  * (src/Rest.php) and appends its rendered HTML.
  *
- * mypluginData (itemsUrl, nonce, i18n) comes from src/Frontend/Frontend.php.
+ * mypluginData (itemsUrl, i18n) comes from src/Frontend/Frontend.php.
  */
 /* global mypluginData */
 ( function () {
@@ -26,10 +26,8 @@
 		button.disabled = true;
 		button.textContent = mypluginData.i18n.loading;
 
-		fetch( url, {
-			credentials: 'same-origin',
-			headers: { 'X-WP-Nonce': mypluginData.nonce },
-		} )
+		// A public route: no nonce, so it keeps working on cached pages.
+		fetch( url, { credentials: 'omit' } )
 			.then( ( response ) =>
 				response.json().then( ( data ) => {
 					if ( ! response.ok ) {

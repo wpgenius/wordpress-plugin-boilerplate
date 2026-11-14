@@ -12,7 +12,7 @@ use WPGenius\MyPlugin\PostTypes\Example;
 
 defined( 'ABSPATH' ) || exit;
 
-$myplugin_count = isset( $attributes['count'] ) ? max( 1, (int) $attributes['count'] ) : 3;
+$myplugin_count = Example::per_page( isset( $attributes['count'] ) ? $attributes['count'] : 3 );
 ?>
 <div <?php echo get_block_wrapper_attributes(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Core escapes it. ?>>
 	<?php
