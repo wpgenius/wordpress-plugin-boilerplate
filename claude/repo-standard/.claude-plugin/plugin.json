@@ -1,0 +1,14 @@
+{
+	"name": "repo-standard",
+	"displayName": "Repo standard",
+	"description": "Start a WordPress plugin from wordpress-plugin-boilerplate (/repo-standard:new), or bring an existing plugin or theme repo up to its standard (/repo-standard:adopt).",
+	"version": "1.0.0",
+	"author": {
+		"name": "WPGenius",
+		"url": "https://wpgenius.in"
+	},
+	"homepage": "https://github.com/wpgenius/wordpress-plugin-boilerplate#bring-an-existing-plugin-or-theme-up-to-the-standard",
+	"repository": "https://github.com/wpgenius/wordpress-plugin-boilerplate",
+	"license": "GPL-3.0-or-later",
+	"keywords": ["wordpress", "plugin", "theme", "github-actions", "release"]
+}

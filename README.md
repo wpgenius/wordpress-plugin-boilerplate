@@ -44,12 +44,27 @@ So `WPGenius\MyPlugin\Admin\Settings` becomes `Acme\Events\Admin\Settings`.
 SLUG=acme-events NAME="Acme Events" VENDOR=Acme PREFIX=Events CONST=ACME_EVENTS FUNC=acme_events; export SLUG NAME VENDOR PREFIX CONST FUNC
 ```
 
+Remove this repo's Claude Code plugin; it belongs to the boilerplate, not to your
+plugin (install it from here instead, see
+[With Claude Code](#with-claude-code-optional)):
+
+```bash
+rm -rf .claude-plugin claude
+```
+
 ```bash
 grep -rlI --exclude-dir={.git,vendor,node_modules} --exclude={README.md,composer.lock,package-lock.json} -e wordpress-plugin-boilerplate -e 'Plugin boilerplate for WordPress' -e 'WPGenius\\' -ie myplugin . | xargs perl -pi -e 's/wordpress-plugin-boilerplate/$ENV{SLUG}/g; s/Plugin boilerplate for WordPress/$ENV{NAME}/g; s/WPGenius\\/$ENV{VENDOR}\\/g; s/MyPlugin/$ENV{PREFIX}/g; s/MYPLUGIN/$ENV{CONST}/g; s/myplugin/$ENV{FUNC}/g'
 ```
 
 ```bash
 mv myplugin.php "$SLUG.php" && mv languages/wordpress-plugin-boilerplate.pot "languages/$SLUG.pot"
+```
+
+Start your own version history at 1.0.0. The header version, the `Stable tag` and
+the changelog still carry the boilerplate's own releases:
+
+```bash
+perl -0pi -e 's/^([ \t\/*#@]*Version:[ \t]*)\S+/${1}1.0.0/m' "$SLUG.php" && perl -pi -e 's/^(Stable tag:[ \t]*)\S+/${1}1.0.0/i' readme.txt && perl -0pi -e 's/^(== Changelog ==[ \t]*\n).*/$1/ms' readme.txt
 ```
 
 Then edit by hand: the author, URIs and description in the plugin header and
@@ -87,7 +102,7 @@ with a linked issue, and lets repo admins and the release workflow (through a `r
 safe to re-run.
 
 The first push to `main` publishes **v1.0.0** ("Initial release") with the plugin
-zip; the version comes from the plugin header. From then on, every change follows
+zip; the version comes from the plugin header you reset in step 2. From then on, every change follows
 the flow below: open an issue, branch, PR, merge.
 
 ## Local development
@@ -161,6 +176,60 @@ the repo variable `DEPLOY_ENABLED` is `true`. Choose the target with `DEPLOY_MET
 To test the connection without uploading, run **Deploy** manually from the
 Actions tab with *deploy* unticked.
 
+## Bring an existing plugin or theme up to the standard
+
+Everything under [How changes ship](#how-changes-ship) and [Deploys](#deploys) works
+in any WordPress plugin or theme repo, not only in plugins started from this one.
+
+### With Claude Code (optional)
+
+This repo is also a Claude Code plugin marketplace with one plugin, **repo-standard**.
+Install it once on your computer:
+
+```bash
+claude plugin marketplace add wpgenius/wordpress-plugin-boilerplate
+```
+
+```bash
+claude plugin install repo-standard@wpgenius
+```
+
+Inside Claude Code the same is `/plugin marketplace add wpgenius/wordpress-plugin-boilerplate`
+and then `/plugin install repo-standard@wpgenius`. It adds two commands, available in every repo:
+
+| Command | What it does |
+|---|---|
+| `/repo-standard:adopt` | Audits the current plugin or theme repo against this standard, then adds the files and GitHub settings in one pull request (one issue per change). Code restructuring is only proposed. |
+| `/repo-standard:new` | Starts a new plugin from this boilerplate: the rename steps above, version 1.0.0, the GitHub repo and its settings. |
+
+The commands always use the latest `main` of this repo, so they pick up changes to
+the standard automatically. They work in Claude Code on your own computer (terminal,
+desktop app, IDE). Cloud sessions on claude.ai don't load plugins installed on your
+computer.
+
+### By hand
+
+1. **Layout.** The plugin (a root `.php` file with a `Plugin Name:` header) or the
+   theme (`style.css` with `Theme Name:`) must be at the repo root, not in a subfolder.
+2. **Copy** from this repo, unchanged: `.github/workflows/release.yml`,
+   `deploy.yml`, `linked-issue.yml`, the `.github/scripts/` folder,
+   `.github/dependabot.yml` and `bin/setup-github.sh`. Delete any older release or
+   deploy workflow, or every change would be released twice. CI and tooling
+   (`ci.yml`, `composer.json`, `phpcs.xml.dist`, `package.json`, Docker) are optional.
+3. **Ignore files.** Start from this repo's `.gitignore` and `.distignore`, then add
+   your project's own rules. Anything `.distignore` doesn't exclude ships in the zip,
+   so check the package contains your runtime files (`build/`, `languages/`, runtime
+   `vendor/`) and nothing dev-only.
+4. **readme.txt** needs a `== Changelog ==` section. For a plugin it also needs a
+   `Stable tag:` equal to the header `Version:` (in `X.Y.Z` form). Themes keep their
+   version in `style.css`.
+5. **Versions.** Existing `vX.Y.Z` tags carry on: the next release is the next patch
+   (or minor/major with a label). With no such tags, the first release takes the
+   header version. If the header is ahead of your latest tag, line them up first.
+6. **Merge and protect.** Open a pull request that closes an issue, merge it, and run
+   `bin/setup-github.sh` (admin rights needed). Changing `.distignore` counts as
+   deployable, so that merge usually makes the first automatic release.
+
 ## Plugin structure
 
 Each area of the plugin has its own file; the folder is the area, the file is
@@ -212,6 +281,7 @@ don't need the same way.
 | `.distignore` | What stays out of the zip and deploys (and so never triggers a release) |
 | `.github/` | CI, release, deploy, linked-issue check, Dependabot |
 | `bin/setup-github.sh` | One-time GitHub settings for a new repo |
+| `.claude-plugin/`, `claude/repo-standard/` | Claude Code plugin with `/repo-standard:adopt` and `/repo-standard:new` (not shipped) |
 | `docker-compose.yml`, `.env.example` | Local WordPress + MariaDB + phpMyAdmin |
 | `composer.json`, `phpcs.xml.dist`, `phpunit.xml.dist` | PHP dev tools: coding standards, tests |
 | `package.json` | Block build and JS/CSS lint (`@wordpress/scripts`) |

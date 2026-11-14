@@ -1,0 +1,17 @@
+{
+	"name": "wpgenius",
+	"description": "Claude Code plugins from WPGenius for WordPress plugin and theme development.",
+	"owner": {
+		"name": "WPGenius",
+		"url": "https://wpgenius.in"
+	},
+	"plugins": [
+		{
+			"name": "repo-standard",
+			"source": "./claude/repo-standard",
+			"description": "Start a WordPress plugin from wordpress-plugin-boilerplate, or bring an existing plugin or theme repo up to its standard: automatic releases, deploy switch, linked issues, protected main.",
+			"category": "development",
+			"tags": ["wordpress", "github-actions", "release", "repo-setup"]
+		}
+	]
+}
