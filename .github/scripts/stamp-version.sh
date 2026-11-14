@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Writes a release into the plugin files:
-#   - "Version:" in the main plugin file header
-#   - "Stable tag:" in readme.txt
+# Writes a release into the plugin or theme files:
+#   - "Version:" in the main plugin file header (style.css for a theme)
+#   - "Stable tag:" in readme.txt, when it has one (themes do not)
 #   - a new "= X.Y.Z =" entry at the top of readme.txt's "== Changelog =="
 # Usage: stamp-version.sh <version> <changelog-file>
 set -euo pipefail
@@ -22,8 +22,13 @@ VERSION="$version" perl -0pi -e 's/^([ \t\/*#@]*Version:[ \t]*)\S+/${1}$ENV{VERS
 [ "$(header_version "$main_file")" = "$version" ] || { echo "::error::could not set Version in $main_file" >&2; exit 1; }
 
 if [ -f readme.txt ]; then
-	VERSION="$version" perl -pi -e 's/^(Stable tag:[ \t]*)\S+/${1}$ENV{VERSION}/i' readme.txt
-	grep -qiE "^Stable tag:[[:space:]]*$version\$" readme.txt || { echo "::error::could not set Stable tag in readme.txt" >&2; exit 1; }
+	if grep -qiE '^Stable tag:' readme.txt; then
+		VERSION="$version" perl -pi -e 's/^(Stable tag:[ \t]*)\S+/${1}$ENV{VERSION}/i' readme.txt
+		grep -qiE "^Stable tag:[[:space:]]*$version\$" readme.txt || { echo "::error::could not set Stable tag in readme.txt" >&2; exit 1; }
+	else
+		# Theme readmes have no Stable tag; their version lives in style.css.
+		echo "::notice::readme.txt has no 'Stable tag:' line; skipped"
+	fi
 
 	if grep -q '^== Changelog ==' readme.txt; then
 		entry=$(printf '= %s =\n\n%s' "$version" "$(cat "$notes")")
