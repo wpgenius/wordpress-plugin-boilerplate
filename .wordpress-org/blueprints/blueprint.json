@@ -1,0 +1,40 @@
+{
+	"$schema": "https://playground.wordpress.net/blueprint-schema.json",
+	"meta": {
+		"title": "Plugin boilerplate for WordPress demo",
+		"description": "Installs the latest release with sample items and a demo page.",
+		"author": "wpgenius"
+	},
+	"landingPage": "/plugin-demo/",
+	"preferredVersions": {
+		"php": "8.3",
+		"wp": "latest"
+	},
+	"features": {
+		"networking": true
+	},
+	"login": true,
+	"steps": [
+		{
+			"step": "installPlugin",
+			"pluginData": {
+				"resource": "url",
+				"url": "https://github.com/wpgenius/wordpress-plugin-boilerplate/releases/latest/download/wordpress-plugin-boilerplate.zip"
+			},
+			"options": {
+				"activate": true
+			}
+		},
+		{
+			"step": "setSiteOptions",
+			"options": {
+				"blogname": "Plugin boilerplate for WordPress demo",
+				"permalink_structure": "/%postname%/"
+			}
+		},
+		{
+			"step": "runPHP",
+			"code": "<?php require_once '/wordpress/wp-load.php'; for ( $i = 1; $i <= 8; $i++ ) { wp_insert_post( array( 'post_type' => 'myplugin_item', 'post_status' => 'publish', 'post_title' => 'Sample item ' . $i, 'post_excerpt' => 'A short description of sample item ' . $i . '.', 'post_content' => 'Content of sample item ' . $i . '.' ) ); } wp_insert_post( array( 'post_type' => 'page', 'post_status' => 'publish', 'post_name' => 'plugin-demo', 'post_title' => 'Plugin demo', 'post_content' => \"<!-- wp:paragraph --><p>The <code>[[myplugin_items]]</code> shortcode, with an AJAX Load more button:</p><!-- /wp:paragraph -->\\n<!-- wp:shortcode -->[myplugin_items per_page=\\\"3\\\"]<!-- /wp:shortcode -->\\n<!-- wp:paragraph --><p>The Latest items block:</p><!-- /wp:paragraph -->\\n<!-- wp:wordpress-plugin-boilerplate/example {\\\"count\\\":4} /-->\\n<!-- wp:paragraph --><p>Settings: Settings → Plugin boilerplate for WordPress. Items: Items in the admin menu.</p><!-- /wp:paragraph -->\" ) ); flush_rewrite_rules();"
+		}
+	]
+}
