@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<!--
+	Integration tests: run inside a real WordPress (wp-env), unlike the unit
+	tests in phpunit.xml.dist, which mock WordPress.
+
+	Start WordPress first (see "Local development" in the README), then:
+
+	  npm run test:integration
+	  npm run test:integration:multisite
+-->
+<phpunit
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+	bootstrap="tests/Integration/bootstrap.php"
+	colors="true"
+	cacheResult="false"
+>
+	<testsuites>
+		<testsuite name="integration">
+			<directory>tests/Integration</directory>
+		</testsuite>
+	</testsuites>
+</phpunit>

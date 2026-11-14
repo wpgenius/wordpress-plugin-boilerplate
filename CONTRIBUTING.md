@@ -39,6 +39,7 @@ then open http://localhost:8000.
 | `composer phpcs` | WordPress Coding Standards (`composer phpcbf` fixes most issues) |
 | `composer phpstan` | Static analysis |
 | `composer test` | Unit tests |
+| `npm run test:integration` | Integration tests in a real WordPress (start it first: `npm run env -- start`; needs Docker) |
 | `npm run lint` | JS and CSS |
 | `npm run build` | Rebuilds `build/` after a block change (commit the result) |
 

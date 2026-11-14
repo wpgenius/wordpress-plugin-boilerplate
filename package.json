@@ -13,12 +13,16 @@
 		"lint": "npm run lint:js && npm run lint:css",
 		"lint:js": "wp-scripts lint-js assets/js blocks",
 		"lint:css": "wp-scripts lint-style \"assets/css/**/*.css\" \"blocks/**/*.css\"",
-		"format": "wp-scripts format assets blocks"
+		"format": "wp-scripts format assets blocks",
+		"env": "wp-env",
+		"test:integration": "wp-env run cli --env-cwd=wp-content/plugins/$(basename \"$PWD\") vendor/bin/phpunit -- -c phpunit-integration.xml.dist",
+		"test:integration:multisite": "wp-env run cli --env-cwd=wp-content/plugins/$(basename \"$PWD\") env WP_MULTISITE=1 vendor/bin/phpunit -- -c phpunit-integration.xml.dist"
 	},
 	"devDependencies": {
 		"@wordpress/block-editor": "^18.1.0",
 		"@wordpress/blocks": "^16.2.0",
 		"@wordpress/components": "^42.0.0",
+		"@wordpress/env": "^11.17.0",
 		"@wordpress/i18n": "^6.30.0",
 		"@wordpress/interactivity": "^7.0.0",
 		"@wordpress/scripts": "^34.2.0",
