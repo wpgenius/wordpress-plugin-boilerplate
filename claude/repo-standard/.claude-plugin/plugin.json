@@ -2,7 +2,7 @@
 	"name": "repo-standard",
 	"displayName": "Repo standard",
 	"description": "Start a WordPress plugin from wordpress-plugin-boilerplate (/repo-standard:new), or bring an existing plugin or theme repo up to its standard (/repo-standard:adopt).",
-	"version": "1.0.0",
+	"version": "1.1.0",
 	"author": {
 		"name": "WPGenius",
 		"url": "https://wpgenius.in"

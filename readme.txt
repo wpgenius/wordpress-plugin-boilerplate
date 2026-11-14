@@ -2,7 +2,7 @@
 Contributors: mkrndmane
 Tags: boilerplate, starter, settings, block, shortcode
 Requires at least: 6.1
-Tested up to: 6.8
+Tested up to: 7.0
 Requires PHP: 7.4
 Stable tag: 2.0.2
 License: GPLv3 or later
@@ -16,7 +16,7 @@ Replace this text with a description of your plugin.
 
 The boilerplate ships working examples you can keep, change or delete:
 
-* **Settings page** (Settings → Plugin boilerplate) built from one array of fields.
+* **Settings page** (Settings → Plugin boilerplate for WordPress) built from one array of fields.
 * **Items** custom post type with a category taxonomy and an image column.
 * **[myplugin_items]** shortcode with an AJAX "Load more" button.
 * **Latest items** block, rendered in PHP.
@@ -27,7 +27,7 @@ The boilerplate ships working examples you can keep, change or delete:
 
 1. Upload the plugin folder to `/wp-content/plugins/`, or install the zip from Plugins → Add New → Upload.
 2. Activate the plugin on the Plugins screen.
-3. Go to Settings → Plugin boilerplate.
+3. Go to Settings → Plugin boilerplate for WordPress.
 
 == Frequently Asked Questions ==
 

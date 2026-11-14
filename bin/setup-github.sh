@@ -10,6 +10,7 @@
 # What it sets:
 #   - merges: squash only; commit message = PR title + PR body; delete branch on merge
 #   - labels: release:minor, release:major (bump the automatic version)
+#   - private vulnerability reporting (the "Report a vulnerability" button SECURITY.md points to)
 #   - variable DEPLOY_ENABLED=false (only if not set yet), environment "production"
 #   - deploy key "release-bot" (write) + secret RELEASE_DEPLOY_KEY: the release
 #     workflow pushes its version-bump commit to main with this key
@@ -33,6 +34,10 @@ gh api --silent -X PATCH "repos/$repo" \
 	-f squash_merge_commit_title=PR_TITLE \
 	-f squash_merge_commit_message=PR_BODY \
 	-F delete_branch_on_merge=true
+
+echo "- private vulnerability reporting"
+gh api --silent -X PUT "repos/$repo/private-vulnerability-reporting" 2>/dev/null \
+	|| echo "  could not enable it (needs a public repo or GitHub Advanced Security); enable it under Settings → Security if available"
 
 echo "- labels"
 gh label create release:minor --repo "$repo" --force --color 1d76db \

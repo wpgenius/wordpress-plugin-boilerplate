@@ -1,0 +1,39 @@
+name: Bug report
+description: Something doesn't work as it should.
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Go to ...
+        2. Click ...
+        3. See error ...
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Plugin version
+      placeholder: e.g. 2.1.0
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: WordPress and PHP versions
+      placeholder: e.g. WordPress 7.0, PHP 8.3
+  - type: textarea
+    id: logs
+    attributes:
+      label: Errors or logs
+      description: PHP errors (wp-content/debug.log) or browser console errors, if any.
+      render: text
