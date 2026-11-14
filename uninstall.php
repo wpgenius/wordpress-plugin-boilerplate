@@ -28,11 +28,26 @@ function myplugin_uninstall_site() {
 		return;
 	}
 
-	// Items (PostTypes\Example::NAME) with their meta, terms and revisions.
+	// Item categories (PostTypes\Example::TAXONOMY), with their links to items.
+	$term_ids = get_terms(
+		array(
+			'taxonomy'   => 'myplugin_item_category',
+			'hide_empty' => false,
+			'fields'     => 'ids',
+		)
+	);
+	if ( is_array( $term_ids ) ) {
+		foreach ( $term_ids as $term_id ) {
+			wp_delete_term( (int) $term_id, 'myplugin_item_category' );
+		}
+	}
+
+	// Items (PostTypes\Example::NAME) with their meta and revisions.
+	// 'any' alone skips the trash and auto-drafts, so they are named too.
 	$item_ids = get_posts(
 		array(
 			'post_type'   => 'myplugin_item',
-			'post_status' => 'any',
+			'post_status' => array( 'any', 'trash', 'auto-draft' ),
 			'numberposts' => -1,
 			'fields'      => 'ids',
 		)
@@ -46,6 +61,10 @@ function myplugin_uninstall_site() {
 	delete_option( 'myplugin_settings' );
 	delete_option( 'myplugin_db_version' ); // Installer::DB_VERSION_OPTION.
 }
+
+// The plugin is not loaded, so its taxonomy is unknown to WordPress here;
+// register it so the terms can be found and deleted.
+register_taxonomy( 'myplugin_item_category', 'myplugin_item' );
 
 if ( is_multisite() ) {
 	$myplugin_site_ids = get_sites(

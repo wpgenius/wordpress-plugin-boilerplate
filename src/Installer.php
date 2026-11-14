@@ -5,6 +5,9 @@
  * - activate():   creates the database table, saves default settings,
  *                 schedules cron jobs and flushes rewrite rules.
  * - deactivate(): removes cron jobs and flushes rewrite rules (data is kept).
+ * - Multisite:    a network activation or deactivation runs on every site; a
+ *                 site added later is set up when the plugin is network active,
+ *                 and the table is dropped when its site is deleted.
  * - Upgrades:     when DB_VERSION is raised, create_tables() runs again on the
  *                 next request; dbDelta() adds new columns and tables.
  *
@@ -38,6 +41,8 @@ class Installer extends Api {
 	 */
 	public function __construct() {
 		add_action( 'init', array( __CLASS__, 'maybe_upgrade' ), 5 );
+		add_action( 'wp_initialize_site', array( __CLASS__, 'new_site' ), 900 ); // After core created the site's tables.
+		add_filter( 'wpmu_drop_tables', array( __CLASS__, 'drop_site_tables' ), 10, 2 );
 	}
 
 	/**
@@ -65,11 +70,66 @@ class Installer extends Api {
 	}
 
 	/**
-	 * Deactivation hook.
+	 * Deactivation hook. On a network deactivation, runs for every site.
+	 *
+	 * @param bool $network_wide Whether the plugin is network deactivated.
+	 * @return void
+	 */
+	public static function deactivate( $network_wide = false ) {
+		if ( is_multisite() && $network_wide ) {
+			$site_ids = get_sites(
+				array(
+					'fields' => 'ids',
+					'number' => 0,
+				)
+			);
+			foreach ( $site_ids as $site_id ) {
+				switch_to_blog( $site_id );
+				self::deactivate_site();
+				restore_current_blog();
+			}
+			return;
+		}
+		self::deactivate_site();
+	}
+
+	/**
+	 * Multisite: set up a site created while the plugin is network active.
+	 *
+	 * @param \WP_Site $site The new site.
+	 * @return void
+	 */
+	public static function new_site( $site ) {
+		if ( ! function_exists( 'is_plugin_active_for_network' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/plugin.php';
+		}
+		if ( ! is_plugin_active_for_network( plugin_basename( MYPLUGIN_FILE ) ) ) {
+			return;
+		}
+		switch_to_blog( (int) $site->blog_id );
+		self::activate_site();
+		restore_current_blog();
+	}
+
+	/**
+	 * Multisite: drop the plugin's table when its site is deleted.
+	 *
+	 * @param string[] $tables  Tables WordPress will drop.
+	 * @param int      $site_id ID of the site being deleted.
+	 * @return string[]
+	 */
+	public static function drop_site_tables( $tables, $site_id ) {
+		global $wpdb;
+		$tables[] = $wpdb->get_blog_prefix( $site_id ) . 'myplugin_log';
+		return $tables;
+	}
+
+	/**
+	 * Clean up one site (its data is kept).
 	 *
 	 * @return void
 	 */
-	public static function deactivate() {
+	private static function deactivate_site() {
 		Cron::unschedule();
 		flush_rewrite_rules();
 	}

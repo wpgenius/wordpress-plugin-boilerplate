@@ -27,6 +27,11 @@ class Example extends Api {
 	const TAXONOMY = 'myplugin_item_category';
 
 	/**
+	 * Most items one request may ask for (shortcode, blocks and REST route).
+	 */
+	const MAX_PER_PAGE = 50;
+
+	/**
 	 * Admin list hooks.
 	 */
 	public function __construct() {
@@ -57,7 +62,7 @@ class Example extends Api {
 				'show_in_rest' => true, // Needed for the block editor.
 				'menu_icon'    => 'dashicons-portfolio',
 				'supports'     => array( 'title', 'editor', 'excerpt', 'thumbnail' ),
-				'rewrite'      => array( 'slug' => 'items' ),
+				'rewrite'      => array( 'slug' => 'myplugin-items' ), // Prefixed, so it can't clash with another plugin.
 			)
 		);
 
@@ -72,9 +77,19 @@ class Example extends Api {
 				'hierarchical'      => true,
 				'show_admin_column' => true,
 				'show_in_rest'      => true,
-				'rewrite'           => array( 'slug' => 'item-category' ),
+				'rewrite'           => array( 'slug' => 'myplugin-item-category' ),
 			)
 		);
+	}
+
+	/**
+	 * Keep a requested number of items between 1 and MAX_PER_PAGE.
+	 *
+	 * @param mixed $per_page Requested number, e.g. a shortcode attribute.
+	 * @return int
+	 */
+	public static function per_page( $per_page ) {
+		return min( self::MAX_PER_PAGE, max( 1, (int) $per_page ) );
 	}
 
 	/**
@@ -89,7 +104,7 @@ class Example extends Api {
 			array(
 				'post_type'           => self::NAME,
 				'post_status'         => 'publish',
-				'posts_per_page'      => max( 1, (int) $per_page ),
+				'posts_per_page'      => self::per_page( $per_page ),
 				'paged'               => max( 1, (int) $page ),
 				'ignore_sticky_posts' => true,
 			)

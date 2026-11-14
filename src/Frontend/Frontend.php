@@ -46,10 +46,12 @@ class Frontend extends Api {
 			self::HANDLE,
 			'mypluginData',
 			array(
-				// REST route used by "Load more" (src/Rest.php). The nonce lets
-				// logged-in users be recognised; visitors don't need it.
+				// REST route used by "Load more" (src/Rest.php). It is public, so no
+				// nonce is sent: a nonce printed into a cached page expires, and
+				// WordPress then rejects the request (403) even on a public route.
+				// For a route that needs the logged-in user, add
+				// 'nonce' => wp_create_nonce( 'wp_rest' ) and send it as X-WP-Nonce.
 				'itemsUrl' => Rest::url( 'items' ),
-				'nonce'    => wp_create_nonce( 'wp_rest' ),
 				'i18n'     => array(
 					'loading' => __( 'Loading…', 'wordpress-plugin-boilerplate' ),
 					'error'   => __( 'Something went wrong. Please try again.', 'wordpress-plugin-boilerplate' ),

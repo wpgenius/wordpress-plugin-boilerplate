@@ -24,11 +24,12 @@ Rename it with one command and start building.
   `{placeholders}`, theme-overridable templates, and a "View details" popup for
   plugins that aren't on WordPress.org.
 - Activation, upgrades and an uninstall that only deletes data when asked.
-  Multisite aware.
+  Multisite aware: network activation and deactivation run on every site, and
+  sites added later are set up too.
 
 **The workflow around it**
 - WordPress Coding Standards, PHPStan static analysis, PHP compatibility
-  (7.4–8.4), unit tests, JS/CSS lint and WordPress Plugin Check, all run on
+  (7.4–8.5), unit tests, JS/CSS lint and WordPress Plugin Check, all run on
   every pull request.
 - **Automatic releases:** merge a pull request and, if the plugin changed, a new
   version is tagged, the changelog is written from the closed issues, and a
@@ -106,6 +107,7 @@ Your plugin:
   Folder / slug   acme-events   (main file: acme-events.php, text domain: acme-events)
   PHP namespace   Acme\AcmeEvents   (e.g. Acme\AcmeEvents\Admin\Settings)
   Prefix          acme_events   (options, hooks, functions)   constants: ACME_EVENTS_*
+                  acme-events-*   (script handles, CSS classes, URL slugs)
   Version         reset to 1.0.0, changelog emptied
 ```
 
@@ -147,9 +149,14 @@ bin/setup-github.sh
 GitHub templates and clones copy files only, so `bin/setup-github.sh` applies the
 settings once: squash-only merges, the `release:minor` / `release:major` labels,
 `DEPLOY_ENABLED=false`, and a "Protect main" ruleset. The ruleset requires PRs
-with a linked issue, and lets repo admins and the release workflow (through a `release-bot` deploy key it creates) bypass it (see
+with a linked issue and passing CI, and lets repo admins and the release workflow (through a `release-bot` deploy key it creates) bypass it (see
 [How changes ship](#how-changes-ship)). It needs admin rights on the repo and is
 safe to re-run.
+
+> **Private repo on a free GitHub plan?** GitHub enforces rulesets on private
+> repos only on paid plans (Pro, Team or Enterprise). On a free plan the script
+> stops at the ruleset step and says so; everything else is applied. Use a
+> public repo or a paid plan to protect `main`.
 
 The first push to `main` publishes **v1.0.0** ("Initial release") with the plugin
 zip; the version comes from the plugin header you reset in step 2. From then on, every change follows
@@ -200,7 +207,7 @@ issue  →  branch  →  pull request (Closes #N)  →  squash merge to main  �
 - **Every PR closes an issue.** The *Linked issue* check fails a PR whose
   description has no `Closes #N`. One request with several changes = one issue per
   change, delivered in one PR.
-- **CI** runs on every PR: PHP 7.4–8.4 syntax, unit tests, PHPCS, PHPStan, JS/CSS lint, block build and WordPress Plugin Check.
+- **CI** runs on every PR and must pass before merging: PHP 7.4–8.5 syntax, unit tests, PHPCS, PHPStan, JS/CSS lint, block build and WordPress Plugin Check.
   Plugin Check fails when `Tested up to` in `readme.txt` is behind the latest WordPress,
   so bump it after testing each new WordPress version. In the boilerplate itself it
   also warns about the placeholder names ("plugin" in the name, the `myplugin_`

@@ -73,7 +73,7 @@ class Rest extends Api {
 							'type'        => 'integer',
 							'default'     => (int) self::get_setting( 'items_per_page', 6 ),
 							'minimum'     => 1,
-							'maximum'     => 50,
+							'maximum'     => Example::MAX_PER_PAGE,
 						),
 					),
 				),
