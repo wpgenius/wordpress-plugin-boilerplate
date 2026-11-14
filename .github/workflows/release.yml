@@ -1,51 +1,122 @@
-name: Build Plugin Release
+name: Release
+
+# Every merge to main is checked; a release is made only when a deployable file
+# changed (anything .distignore does not exclude). Docs-, CI- or config-only
+# merges make no release and no deploy.
+#
+# Steps, in order:
+#   1. Work out the next version (patch by default; the merged PR's
+#      `release:minor` / `release:major` label bumps more) and the changelog
+#      (one line per issue the released PRs closed).
+#   2. Write Version (plugin header), Stable tag and the changelog entry
+#      (readme.txt), and commit that to main as "Release vX.Y.Z [skip ci]".
+#      Needs the "Protect main" ruleset to let GitHub Actions bypass.
+#   3. Tag that commit, build the zip from it, publish the GitHub release.
+#   4. Deploy, only while the repo variable DEPLOY_ENABLED is 'true'.
+#
+# Optional repo variable: PLUGIN_SLUG (zip folder name; defaults to the repo name).
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches:
+      - main
+  workflow_dispatch:
 
 permissions:
   contents: write
+  pull-requests: read
+  issues: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
 
 jobs:
-  build-release:
+  release:
     runs-on: ubuntu-latest
-
+    # The bot's own release commit never needs another release.
+    if: ${{ !startsWith(github.event.head_commit.message, 'Release v') }}
+    outputs:
+      released: ${{ steps.publish.outputs.released }}
+      tag: ${{ steps.plan.outputs.tag }}
+    env:
+      GH_TOKEN: ${{ github.token }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - name: Prepare
+        # Outside the checkout, so the changelog never ends up in the zip or the commit.
+        run: echo "CHANGELOG_FILE=$RUNNER_TEMP/changelog.txt" >> "$GITHUB_ENV"
 
-      - name: Determine Plugin Slug
-        id: plugin
-        run: |
-          SLUG=$(basename $GITHUB_REPOSITORY)
-          echo "slug=$SLUG" >> $GITHUB_OUTPUT
-
-      - name: Install production dependencies (autoloader only, no dev tools)
-        run: composer install --no-dev --optimize-autoloader --no-interaction --no-progress
-
-      - name: Build Release Package
-        run: |
-          SLUG=${{ steps.plugin.outputs.slug }}
-
-          mkdir -p release/$SLUG
-
-          rsync -av . release/$SLUG/ \
-            --exclude-from='.distignore' \
-            --exclude='.git/' \
-            --exclude='release' \
-            --exclude='*.zip'
-
-          # The plugin can't load without Composer's autoloader.
-          test -f release/$SLUG/vendor/autoload.php
-          test ! -e release/$SLUG/vendor/bin
-
-          cd release
-          zip -r ../${SLUG}.zip $SLUG
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+      - name: Check out main with history and tags
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          files: ${{ steps.plugin.outputs.slug }}.zip
-          generate_release_notes: true
+          ref: main
+          fetch-depth: 0
+
+      - name: Plan release
+        id: plan
+        run: bash .github/scripts/release-plan.sh
+
+      - name: Write version and changelog
+        if: steps.plan.outputs.release == 'true'
+        env:
+          VERSION: ${{ steps.plan.outputs.version }}
+        run: |
+          bash .github/scripts/stamp-version.sh "$VERSION" "$CHANGELOG_FILE"
+          git diff --stat
+
+      - name: Commit release to main
+        if: steps.plan.outputs.release == 'true'
+        env:
+          TAG: ${{ steps.plan.outputs.tag }}
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit --all --message "Release $TAG [skip ci]" --message "$(cat "$CHANGELOG_FILE")"
+          if ! git push origin HEAD:main; then
+            echo "::error::Could not push the release commit to main. Check that the 'Protect main' ruleset lists GitHub Actions as a bypass actor (bin/setup-github.sh does this), or that main has not moved during the run."
+            exit 1
+          fi
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+        id: commit
+
+      - name: Build release zip
+        if: steps.plan.outputs.release == 'true'
+        id: build
+        run: |
+          set -euo pipefail
+          . .github/scripts/lib.sh
+          slug="${{ vars.PLUGIN_SLUG }}"
+          slug="${slug:-${GITHUB_REPOSITORY#*/}}"
+          [[ "$slug" =~ ^[a-z0-9][a-z0-9-]*$ ]] || { echo "::error::bad plugin slug '$slug'"; exit 1; }
+          stage="$RUNNER_TEMP/stage"
+          build_package "$stage/$slug"
+          test -f "$stage/$slug/$(main_plugin_file)"
+          (cd "$stage" && zip -r -q "$GITHUB_WORKSPACE/$slug.zip" "$slug")
+          unzip -l "$slug.zip"
+          echo "zip=$slug.zip" >> "$GITHUB_OUTPUT"
+
+      - name: Tag and publish GitHub release
+        if: steps.plan.outputs.release == 'true'
+        id: publish
+        env:
+          TAG: ${{ steps.plan.outputs.tag }}
+          SHA: ${{ steps.commit.outputs.sha }}
+          ZIP: ${{ steps.build.outputs.zip }}
+        run: |
+          set -euo pipefail
+          [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::bad tag $TAG"; exit 1; }
+          gh release create "$TAG" "$ZIP" \
+            --target "$SHA" \
+            --title "$TAG" \
+            --notes-file "$CHANGELOG_FILE"
+          echo "released=true" >> "$GITHUB_OUTPUT"
+
+  deploy:
+    needs: release
+    if: needs.release.outputs.released == 'true' && vars.DEPLOY_ENABLED == 'true'
+    uses: ./.github/workflows/deploy.yml
+    with:
+      tag: ${{ needs.release.outputs.tag }}
+      deploy: true
+    secrets: inherit

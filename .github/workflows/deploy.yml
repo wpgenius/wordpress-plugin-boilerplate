@@ -1,0 +1,257 @@
+name: Deploy
+
+# Uploads a released version (the files .distignore keeps) to one target.
+# Runs automatically after each release only while the repo variable
+# DEPLOY_ENABLED is 'true' (off by default). A manual run checks the
+# connection; it uploads only when DEPLOY_ENABLED is 'true' and "deploy" is ticked.
+#
+# DEPLOY_METHOD (repo variable) picks the target:
+#
+#   ftps   FTP with TLS forced. Never deletes remote files.
+#          vars:    FTP_PORT (21), FTP_REMOTE_PATH (/), FTP_SSL_VERIFY (true)
+#          secrets: FTP_HOST, FTP_USERNAME, FTP_PASSWORD
+#
+#   ssh    rsync over SSH with a deploy key.
+#          vars:    SSH_PORT (22), SSH_REMOTE_PATH (required),
+#                   SSH_DELETE ('true' removes remote files that are no longer shipped)
+#          secrets: SSH_HOST, SSH_USER, SSH_PRIVATE_KEY,
+#                   SSH_KNOWN_HOSTS (output of `ssh-keyscan -p PORT HOST`)
+#
+#   wporg  WordPress.org plugin SVN: trunk/, tags/X.Y.Z/ and assets/
+#          (assets come from .wordpress-org/ in this repo, if present).
+#          vars:    WPORG_SLUG (defaults to PLUGIN_SLUG, then the repo name)
+#          secrets: SVN_USERNAME, SVN_PASSWORD
+#
+# Secrets are masked in logs. Runs in the "production" environment, so you can
+# add required reviewers there for an extra approval step.
+
+on:
+  workflow_call:
+    inputs:
+      tag:
+        description: Release tag to deploy (vX.Y.Z).
+        required: true
+        type: string
+      deploy:
+        description: Upload after the checks.
+        required: false
+        default: true
+        type: boolean
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to deploy (empty = latest release).
+        required: false
+        default: ''
+        type: string
+      deploy:
+        description: Upload after the connection check (also needs DEPLOY_ENABLED=true).
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      GH_TOKEN: ${{ github.token }}
+      DEPLOY_METHOD: ${{ vars.DEPLOY_METHOD }}
+      UPLOAD: ${{ vars.DEPLOY_ENABLED == 'true' && inputs.deploy }}
+    steps:
+      - name: Resolve release tag
+        id: tag
+        env:
+          INPUT_TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+          tag="$INPUT_TAG"
+          if [ -z "$tag" ]; then
+            tag=$(gh release view --repo "$GITHUB_REPOSITORY" --json tagName --jq .tagName)
+          fi
+          [[ "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::bad tag '$tag'"; exit 1; }
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "version=${tag#v}" >> "$GITHUB_OUTPUT"
+          echo "Deploying $tag with method '${DEPLOY_METHOD:-unset}' (upload: $UPLOAD)"
+
+      - name: Check out the released commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ steps.tag.outputs.tag }}
+
+      - name: Build package
+        id: pkg
+        run: |
+          set -euo pipefail
+          . .github/scripts/lib.sh
+          dir="$RUNNER_TEMP/package"
+          build_package "$dir"
+          test -f "$dir/$(main_plugin_file)"
+          echo "dir=$dir" >> "$GITHUB_OUTPUT"
+          (cd "$dir" && find . -type f | sort)
+
+      - name: Check deploy method
+        run: |
+          case "$DEPLOY_METHOD" in
+            ftps|ssh|wporg) ;;
+            *) echo "::error::Set the repo variable DEPLOY_METHOD to ftps, ssh or wporg (now: '${DEPLOY_METHOD}')"; exit 1 ;;
+          esac
+
+      # ---------------------------------------------------------------- FTPS
+      - name: FTPS - check settings and connection
+        if: env.DEPLOY_METHOD == 'ftps'
+        env:
+          FTP_HOST: ${{ secrets.FTP_HOST }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+          FTP_PORT: ${{ vars.FTP_PORT || '21' }}
+          FTP_REMOTE_PATH: ${{ vars.FTP_REMOTE_PATH || '/' }}
+          FTP_SSL_VERIFY: ${{ vars.FTP_SSL_VERIFY || 'true' }}
+        run: |
+          set -euo pipefail
+          bad=0
+          for n in FTP_HOST FTP_USERNAME FTP_PASSWORD; do [ -n "${!n}" ] || { echo "::error::$n is not set"; bad=1; }; done
+          # These are interpolated into lftp commands: accept only safe shapes.
+          [[ "$FTP_HOST" =~ ^[A-Za-z0-9.-]+$ ]] || { echo "::error::FTP_HOST must be a plain hostname"; bad=1; }
+          [[ "$FTP_PORT" =~ ^[0-9]{1,5}$ ]] || { echo "::error::FTP_PORT must be a number"; bad=1; }
+          [[ "$FTP_REMOTE_PATH" =~ ^/[A-Za-z0-9._/-]*$ ]] || { echo "::error::FTP_REMOTE_PATH must be an absolute path of letters, digits, . _ - /"; bad=1; }
+          [[ "$FTP_SSL_VERIFY" =~ ^(true|false)$ ]] || { echo "::error::FTP_SSL_VERIFY must be true or false"; bad=1; }
+          [ "$bad" -eq 0 ] || exit 1
+          [ "$FTP_SSL_VERIFY" = true ] || echo "::warning::FTP_SSL_VERIFY=false: the server certificate is not verified"
+          sudo apt-get update -qq && sudo apt-get install -y -qq lftp >/dev/null
+          LFTP_PASSWORD="$FTP_PASSWORD" lftp --env-password -u "$FTP_USERNAME" "ftp://$FTP_HOST:$FTP_PORT" <<EOF
+          set cmd:fail-exit true
+          set net:timeout 30
+          set net:max-retries 2
+          set ftp:ssl-force true
+          set ftp:ssl-protect-data true
+          set ftp:passive-mode true
+          set ssl:verify-certificate $FTP_SSL_VERIFY
+          cd "$(dirname "$FTP_REMOTE_PATH")"
+          cls -1
+          bye
+          EOF
+
+      - name: FTPS - upload
+        if: env.DEPLOY_METHOD == 'ftps' && env.UPLOAD == 'true'
+        env:
+          FTP_HOST: ${{ secrets.FTP_HOST }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+          FTP_PORT: ${{ vars.FTP_PORT || '21' }}
+          FTP_REMOTE_PATH: ${{ vars.FTP_REMOTE_PATH || '/' }}
+          FTP_SSL_VERIFY: ${{ vars.FTP_SSL_VERIFY || 'true' }}
+          PKG: ${{ steps.pkg.outputs.dir }}
+        run: |
+          set -euo pipefail
+          LFTP_PASSWORD="$FTP_PASSWORD" lftp --env-password -u "$FTP_USERNAME" "ftp://$FTP_HOST:$FTP_PORT" <<EOF
+          set cmd:fail-exit true
+          set net:timeout 30
+          set net:max-retries 2
+          set ftp:ssl-force true
+          set ftp:ssl-protect-data true
+          set ftp:passive-mode true
+          set ssl:verify-certificate $FTP_SSL_VERIFY
+          mkdir -p -f "$FTP_REMOTE_PATH"
+          mirror --reverse --verbose=1 --no-perms "$PKG" "$FTP_REMOTE_PATH"
+          bye
+          EOF
+
+      # ----------------------------------------------------------------- SSH
+      - name: SSH - check settings and connection
+        if: env.DEPLOY_METHOD == 'ssh'
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+          SSH_PORT: ${{ vars.SSH_PORT || '22' }}
+          SSH_REMOTE_PATH: ${{ vars.SSH_REMOTE_PATH }}
+        run: |
+          set -euo pipefail
+          bad=0
+          for n in SSH_HOST SSH_USER SSH_PRIVATE_KEY SSH_KNOWN_HOSTS SSH_REMOTE_PATH; do [ -n "${!n}" ] || { echo "::error::$n is not set"; bad=1; }; done
+          [[ "$SSH_HOST" =~ ^[A-Za-z0-9.-]+$ ]] || { echo "::error::SSH_HOST must be a plain hostname"; bad=1; }
+          [[ "$SSH_USER" =~ ^[A-Za-z0-9._-]+$ ]] || { echo "::error::SSH_USER has unexpected characters"; bad=1; }
+          [[ "$SSH_PORT" =~ ^[0-9]{1,5}$ ]] || { echo "::error::SSH_PORT must be a number"; bad=1; }
+          [[ "$SSH_REMOTE_PATH" =~ ^/[A-Za-z0-9._/-]+$ ]] || { echo "::error::SSH_REMOTE_PATH must be an absolute path of letters, digits, . _ - /"; bad=1; }
+          [ "$bad" -eq 0 ] || exit 1
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key && chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts && chmod 600 ~/.ssh/known_hosts
+          ssh -i ~/.ssh/deploy_key -p "$SSH_PORT" -o BatchMode=yes -o StrictHostKeyChecking=yes \
+            "$SSH_USER@$SSH_HOST" "test -d \"\$(dirname '$SSH_REMOTE_PATH')\" && echo connected"
+
+      - name: SSH - upload
+        if: env.DEPLOY_METHOD == 'ssh' && env.UPLOAD == 'true'
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PORT: ${{ vars.SSH_PORT || '22' }}
+          SSH_REMOTE_PATH: ${{ vars.SSH_REMOTE_PATH }}
+          SSH_DELETE: ${{ vars.SSH_DELETE || 'false' }}
+          PKG: ${{ steps.pkg.outputs.dir }}
+        run: |
+          set -euo pipefail
+          delete=()
+          [ "$SSH_DELETE" = true ] && delete=(--delete)
+          rsync -rlz --checksum --itemize-changes "${delete[@]}" \
+            -e "ssh -i $HOME/.ssh/deploy_key -p $SSH_PORT -o BatchMode=yes -o StrictHostKeyChecking=yes" \
+            --rsync-path="mkdir -p '$SSH_REMOTE_PATH' && rsync" \
+            "$PKG/" "$SSH_USER@$SSH_HOST:$SSH_REMOTE_PATH/"
+
+      # ----------------------------------------------------- WordPress.org SVN
+      - name: WordPress.org - check settings and SVN access
+        if: env.DEPLOY_METHOD == 'wporg'
+        id: wporg
+        env:
+          SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
+          SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
+          WPORG_SLUG: ${{ vars.WPORG_SLUG || vars.PLUGIN_SLUG }}
+        run: |
+          set -euo pipefail
+          slug="${WPORG_SLUG:-${GITHUB_REPOSITORY#*/}}"
+          bad=0
+          for n in SVN_USERNAME SVN_PASSWORD; do [ -n "${!n}" ] || { echo "::error::$n is not set"; bad=1; }; done
+          [[ "$slug" =~ ^[a-z0-9][a-z0-9-]*$ ]] || { echo "::error::bad WordPress.org slug '$slug'"; bad=1; }
+          [ "$bad" -eq 0 ] || exit 1
+          sudo apt-get update -qq && sudo apt-get install -y -qq subversion >/dev/null
+          url="https://plugins.svn.wordpress.org/$slug"
+          svn ls "$url" --non-interactive >/dev/null || { echo "::error::$url is not reachable (is the plugin approved on WordPress.org?)"; exit 1; }
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      - name: WordPress.org - commit trunk, tag and assets
+        if: env.DEPLOY_METHOD == 'wporg' && env.UPLOAD == 'true'
+        env:
+          SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
+          SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
+          URL: ${{ steps.wporg.outputs.url }}
+          VERSION: ${{ steps.tag.outputs.version }}
+          PKG: ${{ steps.pkg.outputs.dir }}
+        run: |
+          set -euo pipefail
+          svn_dir="$RUNNER_TEMP/svn"
+          svn checkout --depth immediates --non-interactive "$URL" "$svn_dir"
+          cd "$svn_dir"
+          svn update --set-depth infinity --non-interactive trunk assets
+          if svn ls "$URL/tags/$VERSION" --non-interactive >/dev/null 2>&1; then
+            echo "::error::tags/$VERSION already exists on WordPress.org"; exit 1
+          fi
+          rsync -rc --delete --exclude='.svn' "$PKG/" trunk/
+          if [ -d "$GITHUB_WORKSPACE/.wordpress-org" ]; then
+            rsync -rc --delete --exclude='.svn' "$GITHUB_WORKSPACE/.wordpress-org/" assets/
+          fi
+          svn add --force --quiet trunk assets
+          svn status | awk '/^!/ {print $2}' | xargs -r svn delete --quiet
+          svn copy --quiet trunk "tags/$VERSION"
+          svn status
+          svn commit --non-interactive --no-auth-cache \
+            --username "$SVN_USERNAME" --password "$SVN_PASSWORD" \
+            --message "Release $VERSION"
