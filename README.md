@@ -19,7 +19,8 @@ Rename it with one command and start building.
 - A **settings page built from one array**: add a field in one line and get it
   registered, sanitised, rendered and readable with `get_setting()`.
 - Working examples: a custom post type with an admin column, a REST API route,
-  a shortcode with a "Load more" button that uses it, an admin-ajax action, a dynamic block, a scheduled email with
+  a shortcode with a "Load more" button that uses it, an admin-ajax action,
+  a dynamic block and an interactive block built with the Interactivity API, a dynamic block, a scheduled email with
   `{placeholders}`, theme-overridable templates, and a "View details" popup for
   plugins that aren't on WordPress.org.
 - Activation, upgrades and an uninstall that only deletes data when asked.
@@ -37,6 +38,18 @@ Rename it with one command and start building.
   one-command GitHub setup.
 - A local WordPress in Docker, and a rename script so the first five minutes
   are easy.
+
+## Screenshots
+
+| Settings page built from one array | Block with its settings in the editor |
+|---|---|
+| ![Settings page with general and daily report sections](.wordpress-org/screenshot-2.jpg) | ![Latest items block selected in the editor, showing the number of items and layout settings](.wordpress-org/screenshot-3.jpg) |
+
+| Front end: shortcode with Load more (REST API) | Interactivity API block filtering as you type |
+|---|---|
+| ![Demo page with a grid of items and a Load more button](.wordpress-org/screenshot-1.jpg) | ![Items with live filter block showing one match for the search "item 4"](.wordpress-org/screenshot-4.png) |
+
+All taken in the [Playground demo](#try-it-in-your-browser).
 
 ## Why this boilerplate
 
@@ -302,7 +315,8 @@ src/
 │   └── Example.php       "Items" post type, taxonomy, admin column
 └── Blocks/
     └── Blocks.php        registers every block in build/
-blocks/example/           block source (block.json, edit.js, render.php) → npm run build → build/
+blocks/example/           dynamic block source (block.json, edit.js, render.php) → npm run build → build/
+blocks/interactive/       Interactivity API block: render.php + view.js (data-wp-* directives)
 templates/                HTML templates; themes override them in <theme>/wordpress-plugin-boilerplate/
 assets/                   admin and front-end CSS/JS
 languages/                translation template (.pot)

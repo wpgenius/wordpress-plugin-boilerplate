@@ -21,6 +21,7 @@ The boilerplate ships working examples you can keep, change or delete:
 * **[myplugin_items]** shortcode with a "Load more" button that reads a REST API route.
 * **"Send a test report"** button on the settings page (admin-ajax).
 * **Latest items** block, rendered in PHP.
+* **Items with live filter** block: a search box that filters the list as you type (Interactivity API).
 * **Daily report** email sent by WP-Cron, with {placeholders} in the subject and message.
 * Templates your theme can override, and a "View details" popup for private plugins.
 
@@ -39,6 +40,13 @@ Copy a file from the plugin's `templates/` folder to `wp-content/themes/<your-th
 = Is my data deleted when I delete the plugin? =
 
 Only if "Delete data on uninstall" is ticked in the settings.
+
+== Screenshots ==
+
+1. The demo page: the shortcode with a Load more button that reads a REST API route.
+2. The settings page, built from one array of fields.
+3. The Latest items block and its settings in the block editor.
+4. The Items with live filter block, filtering as you type.
 
 == Changelog ==
 
