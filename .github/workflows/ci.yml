@@ -174,7 +174,7 @@ jobs:
           echo "::group::Minimal"
           cd "$RUNNER_TEMP/minimal"
           bin/rename.sh "Acme Events" --vendor Acme --author "Acme Inc" --minimal --yes
-          if grep -rIn --exclude-dir={.git,vendor,node_modules,build,languages} --exclude={README.md,rename.sh,phpcs.xml.dist} \
+          if grep -rIn --exclude-dir={.git,.github,vendor,node_modules,build,languages} --exclude={README.md,rename.sh,phpcs.xml.dist} \
             -e 'Example: ' -e 'Cron::' -e 'Ajax::' -e 'PluginInfo' -e 'DB_VERSION' .; then
             echo "::error::--minimal left parts of the removed examples behind (lines above)."
             exit 1
