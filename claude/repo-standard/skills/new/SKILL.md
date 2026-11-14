@@ -38,8 +38,11 @@ Before creating anything, confirm the plan in one message:
    ```
    It renames every file and string, fills in the plugin header, resets the version to 1.0.0, empties the changelog and removes the boilerplate's own `.claude-plugin/` and `claude/` folders. If the README describes a different rename step, follow the README.
 3. **Hand edits.** Anything the script reports as left over, `readme.txt` (description, FAQ, Contributors), and regenerate the `.pot` file (`composer make-pot`) if Composer is set up.
-4. **Version check.** Confirm the header `Version:`, the `*_VERSION` constant and `Stable tag:` all say `1.0.0`.
+4. **Version check.** Confirm the header `Version:`, the `*_VERSION` constant and `Stable tag:` all say `1.0.0`, and that `readme.txt` "Tested up to" is the latest WordPress (Plugin Check in CI fails otherwise).
 5. **Write a README.** Replace `README.md` with a short one for this plugin: name, description, a "Development" pointer and "How changes ship". Keep the boilerplate's developer notes where they still apply.
+   - **Public repo:** keep a "Try it in your browser" link to `https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/OWNER/SLUG/main/.wordpress-org/blueprints/blueprint.json`. It works from the first release on.
+   - **Private repo:** leave the Playground link out (Playground can't download a private release). The blueprint file can stay; it isn't shipped.
+   - Remove the boilerplate's `.wordpress-org/screenshot-*` files, or replace them with this plugin's.
 6. **Check:**
    - No leftover boilerplate names (anything unintended is a miss):
      ```bash

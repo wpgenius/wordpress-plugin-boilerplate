@@ -31,7 +31,11 @@ Ask everything at once, with the recommended answer first:
   - *wporg*. Plugins only: themes aren't deployed to WordPress.org by SVN.
 
   `DEPLOY_ENABLED` stays `false` whatever they choose.
-- **Tooling group:** add CI, coding standards and local Docker from the boilerplate? Warn that existing code may fail the lint jobs.
+- **Tooling group:** add CI, coding standards, PHPStan and local Docker from the boilerplate? Warn that existing code may fail the jobs:
+  - PHPCS and PHPStan usually report many issues in older code. Offer to keep either job report-only (`continue-on-error: true`) or to drop it.
+  - Plugin Check fails if `readme.txt` "Tested up to" is behind the latest WordPress (the audit says) and on anything WordPress.org would reject. Offer to drop the job for private client plugins.
+- **Community files:** add `CONTRIBUTING.md`, `SECURITY.md`, the issue forms and the PR template? Recommended for public repos; optional for private ones.
+- **Playground demo:** only for a public plugin. Add the blueprint and a "Try it in your browser" link? It works once the repo has a release.
 - **Version mismatch:** only if the audit warned that the header version is ahead of the latest tag. How should they be lined up? For example, a `release:minor` or `release:major` label on this PR, or correcting the header.
 - **Old workflows:** only if the audit found workflows that aren't in the standard. Replace or keep each one. An old release or deploy workflow must go, or every change would be released twice.
 - **Classic branch protection:** only if present. Replace it with the ruleset?
@@ -44,7 +48,10 @@ Create one issue per change you'll actually make. Each body says what's wrong no
 - **Require a linked issue on PRs.**
 - **Dependabot for GitHub Actions.**
 - **GitHub setup script:** `bin/setup-github.sh`.
-- **Tooling group:** if chosen.
+- **Tooling group:** if chosen (name PHPStan and Plugin Check in it, and any job kept report-only).
+- **Community files:** if chosen.
+- **Playground demo:** if chosen.
+- **Tested up to:** if the audit says it's behind, as its own issue (bump it after testing on the latest WordPress).
 - **Remove old workflows:** if chosen.
 
 ## 4. Branch and files
@@ -66,9 +73,12 @@ Create a branch from an up-to-date default branch, e.g. `git switch -c repo-stan
   - Keep every existing changelog entry.
 - **Header `Version:`** must be `X.Y.Z`. Fix it if it isn't, and say so.
 - **Tooling group** (if chosen):
-  - Copy the files.
-  - Adapt the names to this repo: composer `name`, PHPCS `text_domain` and `prefixes`, the `.env.example` slug.
+  - Copy the files, including `phpstan.neon.dist` and `tests/phpstan/bootstrap.php`.
+  - Adapt the names to this repo: composer `name`, PHPCS `text_domain` and `prefixes`, the `.env.example` slug, the `paths` in `phpstan.neon.dist`, and the constants in `tests/phpstan/bootstrap.php` (the ones the main plugin file defines).
+  - Run `composer phpstan` once and tell the user how many issues it reports, so the choice of blocking or report-only is informed.
   - Regenerate the lock files with `composer install` and `npm install`. Never copy the boilerplate's lock files.
+- **Community files** (if chosen): copy them and replace `wpgenius/wordpress-plugin-boilerplate` (security link in `.github/ISSUE_TEMPLATE/config.yml`) and the boilerplate's name with this repo's.
+- **Playground demo** (if chosen): copy `.wordpress-org/blueprints/blueprint.json`, replace the zip URL, slug and demo content with this plugin's (use its own shortcodes or blocks), and add the "Try it in your browser" link to the README with this repo's raw URL.
 - **Slug:** if the audit says the repo name isn't a valid slug, `PLUGIN_SLUG` must be set (step 7).
 - **README:** add a short "How changes ship" section, adapted from the boilerplate's.
 
@@ -104,8 +114,8 @@ Commit and push the branch. Open one PR that closes every issue. In the body:
 - **Changes:** one line per change, under its issue.
 - **Verification:** what you checked.
 - **What happens on merge:**
-  - A `.distignore` change counts as deployable, so the first release usually runs on this merge.
-  - With no tags, that release is `v<header version>` ("Initial release").
+  - With no tags yet, this merge publishes `v<header version>` ("Initial release").
+  - With tags, it releases only if the zip changed compared with the last release (for example a `readme.txt` or header fix). Adding only workflows, scripts and ignore rules makes no release.
   - Deploys stay off until `DEPLOY_ENABLED=true`.
 
 Check CI once and report. Merge only when asked. After the merge, check the Release run once, and report the release URL or the error.

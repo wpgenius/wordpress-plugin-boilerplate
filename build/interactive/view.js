@@ -1,0 +1,1 @@
+import{getContext as t,store as e}from"@wordpress/interactivity";const s=(t,e)=>t.includes(e.trim().toLowerCase());e("wordpress-plugin-boilerplate/interactive",{state:{get isVisible(){const e=t();return s(e.title,e.search)},get isEmpty(){const e=t();return!e.titles.some(t=>s(t,e.search))}},actions:{updateSearch(e){t().search=e.target.value}}});

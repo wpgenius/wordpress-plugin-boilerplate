@@ -16,7 +16,7 @@
 
 	<!-- Minimum versions: keep in sync with the plugin header and readme.txt. -->
 	<config name="testVersion" value="7.4-"/>
-	<config name="minimum_wp_version" value="6.1"/>
+	<config name="minimum_wp_version" value="6.5"/>
 
 	<rule ref="WordPress"/>
 

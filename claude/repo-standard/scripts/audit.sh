@@ -71,11 +71,11 @@ other=$(git tag --list | grep -vE '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n 5 | tr '
 say "- Latest vX.Y.Z tag: ${strict:-none}"
 [ -z "$other" ] || say "- Other tags (ignored by the release workflow): $other"
 if [ -z "$strict" ]; then
-	say "- First release after setup: v${ver:-1.0.0} (\"Initial release\"), on the first merge that changes a shipped file or .distignore."
+	say "- First release after setup: v${ver:-1.0.0} (\"Initial release\"), on the first merge to main."
 else
 	IFS=. read -r a b c <<<"${strict#v}"
 	next="$a.$b.$((c + 1))"
-	say "- Next automatic release: v$next (patch), or higher with a release:minor/major label."
+	say "- Next automatic release: v$next (patch), or higher with a release:minor/major label. It happens only on a merge that changes the zip compared with $strict."
 	if [ -n "$ver" ] && [ "$(printf '%s\n%s\n' "$ver" "$next" | sort -V | tail -n 1)" != "$next" ]; then
 		say "  WARNING: header Version $ver is ahead of v$next. Ask the user how to line them up before merging."
 	fi
@@ -91,6 +91,15 @@ if [ -f readme.txt ]; then
 	grep -qiE '^Stable tag:' readme.txt && say "- Stable tag: $(grep -iE '^Stable tag:' readme.txt | head -n 1 | sed 's/^[^:]*:[[:space:]]*//')" ||
 		{ [ "$kind" = theme ] && say "- No Stable tag (fine for a theme)" || say "- MISSING 'Stable tag:' line (plugins need it)"; }
 	grep -q '^== Changelog ==' readme.txt && say "- == Changelog == section: present" || say "- MISSING '== Changelog ==' section: releases can't write the changelog"
+	tested=$(grep -iE '^Tested up to:' readme.txt | head -n 1 | sed 's/^[^:]*:[[:space:]]*//; s/[[:space:]]*$//')
+	latest=$(curl -fsS --max-time 10 https://api.wordpress.org/core/version-check/1.7/ 2>/dev/null | grep -oE '"current":"[0-9]+\.[0-9]+' | head -n 1 | sed 's/.*"//')
+	if [ -z "$tested" ]; then
+		[ "$kind" = theme ] || say "- MISSING 'Tested up to:' (Plugin Check fails without it)"
+	elif [ -n "$latest" ] && [ "$(printf '%s\n%s\n' "$tested" "$latest" | sort -V | head -n 1)" != "$latest" ]; then
+		say "- Tested up to: $tested, but the latest WordPress is $latest. Plugin Check (tooling group) fails until it is bumped after testing."
+	else
+		say "- Tested up to: $tested${latest:+ (latest WordPress: $latest)}"
+	fi
 else
 	say "- MISSING readme.txt (the release writes the changelog there)"
 fi
@@ -109,11 +118,22 @@ for f in .github/workflows/release.yml .github/workflows/deploy.yml .github/work
 hdr "Ignore files (merged)"
 for f in .gitignore .distignore; do cmpfile "$f"; done
 hdr "Tooling (optional group: CI, coding standards, local dev)"
-for f in .github/workflows/ci.yml composer.json phpcs.xml.dist package.json .nvmrc .editorconfig \
-	.env.example docker-compose.yml; do
+for f in .github/workflows/ci.yml composer.json phpcs.xml.dist phpstan.neon.dist tests/phpstan/bootstrap.php \
+	phpunit.xml.dist package.json .nvmrc .editorconfig .env.example docker-compose.yml; do
 	[ -f "$std/$f" ] || continue
 	if [ -f "$f" ]; then say "  present   $f"; else say "  missing   $f"; fi
 done
+
+hdr "Community files (optional)"
+for f in CONTRIBUTING.md SECURITY.md .github/pull_request_template.md .github/ISSUE_TEMPLATE/bug_report.yml \
+	.github/ISSUE_TEMPLATE/feature_request.yml .github/ISSUE_TEMPLATE/config.yml; do
+	[ -f "$std/$f" ] || continue
+	if [ -f "$f" ]; then say "  present   $f"; else say "  missing   $f"; fi
+done
+
+hdr "Playground demo (optional, public plugins with releases)"
+if [ -f .wordpress-org/blueprints/blueprint.json ]; then say "  present   .wordpress-org/blueprints/blueprint.json"
+else say "  missing   .wordpress-org/blueprints/blueprint.json"; fi
 
 hdr "Other workflows in this repo (not in the standard)"
 others=0

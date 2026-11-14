@@ -34,8 +34,8 @@ They're in `${CLAUDE_PLUGIN_ROOT}/scripts/`. Run them with `bash`.
 
 ## What the standard gives a repo
 
-- **Ignore files:** `.gitignore`, plus `.distignore`, which decides what ships. Anything `.distignore` doesn't exclude counts as deployable.
-- **Automatic releases:** `release.yml` and `.github/scripts/`. On each merge to `main` that changes the plugin zip (compared with the last release), the workflow:
+- **Ignore files:** `.gitignore`, plus `.distignore`, which decides what ships (the zip and deploys).
+- **Automatic releases:** `release.yml` and `.github/scripts/`. On each merge to `main`, the workflow builds the zip and compares it with the zip of the last release tag. Only if they differ (docs, CI, config and `.distignore`-only changes leave it identical) does it release:
   1. bumps the version: patch by default, or minor/major with the `release:minor` or `release:major` label;
   2. writes the version and changelog into the plugin header (or `style.css` for a theme) and `readme.txt`;
   3. commits that to `main`;
@@ -48,5 +48,9 @@ They're in `${CLAUDE_PLUGIN_ROOT}/scripts/`. Run them with `bash`.
   - the release labels;
   - `DEPLOY_ENABLED=false`;
   - a `release-bot` deploy key, which the release workflow uses to push its version commit;
-  - a "Protect main" ruleset: no deletion, no force-push, PRs required, the "Linked issue" check required. Repo admins and deploy keys may bypass it.
-- **Tooling** (optional when adopting): CI, coding standards, a local Docker environment.
+  - a "Protect main" ruleset: no deletion, no force-push, PRs required, the "Linked issue" check required. Repo admins and deploy keys may bypass it;
+  - private vulnerability reporting (the "Report a vulnerability" button `SECURITY.md` points to; GitHub allows it on public repos).
+- **Tooling** (optional when adopting): CI (`ci.yml`: PHP syntax and unit tests, PHPCS, PHPStan, JS/CSS lint, block build, WordPress Plugin Check), coding standards, static analysis (`phpstan.neon.dist`, `tests/phpstan/bootstrap.php`), a local Docker environment.
+  - Plugin Check fails while `readme.txt` "Tested up to" is behind the latest WordPress, and on code WordPress.org would reject.
+- **Community files** (optional): `CONTRIBUTING.md`, `SECURITY.md`, issue forms (`.github/ISSUE_TEMPLATE/`) and a PR template with `Closes #`.
+- **Playground demo** (optional): `.wordpress-org/blueprints/blueprint.json` plus a "Try it in your browser" link. It installs `releases/latest/download/<slug>.zip`, so it only works for a public repo that has a release.
