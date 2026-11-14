@@ -4,7 +4,7 @@ Tags: boilerplate, starter, settings, block, shortcode
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 2.0.4
+Stable tag: 2.0.5
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -49,6 +49,15 @@ Only if "Delete data on uninstall" is ticked in the settings.
 4. The Items with live filter block, filtering as you type.
 
 == Changelog ==
+
+= 2.0.5 =
+
+* README screenshots of the settings page and blocks (#52)
+* Interactive block example (Interactivity API) (#53)
+* repo-standard skill: describe the new release rule (#54)
+* repo-standard skill: PHPStan and Plugin Check in the tooling group (#55)
+* repo-standard skill: community files (#56)
+* repo-standard skill: Playground demo and Tested up to (#57)
 
 = 2.0.4 =
 
