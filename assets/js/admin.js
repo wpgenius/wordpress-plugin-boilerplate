@@ -1,5 +1,8 @@
-jQuery( document ).ready( function () {
+/* global jQuery */
 
-	//code starts here
-
-});
+/**
+ * Scripts for the admin screens. Enqueued with jQuery as a dependency.
+ */
+jQuery( function () {
+	// Code starts here: runs once the DOM is ready.
+} );

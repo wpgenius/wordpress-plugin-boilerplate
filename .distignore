@@ -33,7 +33,13 @@ Thumbs.db
 
 # Node 
 node_modules
+composer.json
 composer.lock
+package.json
+.phpcs.cache
+.eslintcache
+.stylelintcache
+.nvmrc
 package-lock.json
 
 vendor/bin
