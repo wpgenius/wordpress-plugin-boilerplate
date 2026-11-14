@@ -127,9 +127,6 @@ fi
 export NAME SLUG VENDOR PREFIX CONST FUNC KEBAB GITHUB OLD_SLUG OLD_NAME OLD_REPO
 export DESCRIPTION AUTHOR AUTHOR_URI PLUGIN_URI
 
-# The boilerplate's own Claude Code plugin is not part of your plugin.
-rm -rf claude .claude-plugin
-
 files=$(grep -rlI --exclude-dir={.git,vendor,node_modules} \
 	--exclude={README.md,composer.lock,package-lock.json,rename.sh,'.*cache'} \
 	-e "$OLD_SLUG" -e "$OLD_NAME" -e 'WPGenius\\' -ie myplugin . || true)
