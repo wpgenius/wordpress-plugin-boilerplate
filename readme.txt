@@ -4,7 +4,7 @@ Tags: wordpress, plugin, custom
 Requires at least: 6.0
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 1.0.0
+Stable tag: 2.0.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -52,6 +52,23 @@ Yes. The plugin is built with extensibility in mind and follows WordPress best p
 3. Example output.
 
 == Changelog ==
+
+= 2.0.0 =
+
+* Fix repo hygiene and plugin bootstrap issues (#2)
+* Add Composer with dev tooling and class autoloading (#5)
+* Add WordPress Coding Standards config and EditorConfig (#6)
+* Load translations from languages/ and ship a .pot template (#7)
+* Add JS/CSS linting with @wordpress/scripts (#8)
+* Add CI checks for pull requests (#9)
+* Load plugin classes without requiring Composer (#11)
+* Refresh .gitignore and .distignore for WordPress plugins (#12)
+* Automatic versioned releases with changelog from issues (#13)
+* Deploy workflow with DEPLOY_ENABLED switch (FTPS, SSH, WordPress.org) (#14)
+* Keep GitHub Actions up to date with Dependabot (#15)
+* Require pull requests to link an issue (#16)
+* GitHub setup script for repos created from this template (#17)
+* README: getting started and repo workflow (#18)
 
 == Upgrade Notice ==
 

@@ -3,7 +3,7 @@
 Plugin Name: Plugin boilerplate for WordPress
 Plugin URI: https://wpgenius.in
 Description: WordPress plugin boilerplate with complete functionality
-Version: 1.0.0
+Version: 2.0.0
 Requires at least: 6.0
 Requires PHP: 7.4
 Author: Team WPGenius (Makarand Mane)
