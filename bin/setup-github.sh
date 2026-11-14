@@ -15,10 +15,14 @@
 #   - deploy key "release-bot" (write) + secret RELEASE_DEPLOY_KEY: the release
 #     workflow pushes its version-bump commit to main with this key
 #   - ruleset "Protect main" on the default branch: no deletion, no force-push,
-#     PRs required (squash), "Linked issue" check required.
+#     PRs required (squash), "Linked issue" check required, and the "CI" check
+#     too when the repo has .github/workflows/ci.yml.
 #     Bypass: repository admins (so you can still edit on GitHub directly) and
 #     deploy keys (so the release workflow can commit the version bump).
 #     GitHub Actions' own token cannot be a bypass actor, hence the deploy key.
+#     Note: GitHub lets ANY deploy key with write access bypass, not only
+#     "release-bot", so don't add other write deploy keys to the repo.
+#     Rulesets on a private repo need a paid GitHub plan (Pro, Team or Enterprise).
 set -euo pipefail
 
 command -v gh >/dev/null || { echo "Install the GitHub CLI first: https://cli.github.com" >&2; exit 1; }
@@ -69,6 +73,15 @@ else
 fi
 
 echo "- ruleset 'Protect main'"
+# Require CI only where it exists: a required check that never runs would block every PR.
+checks='{ "context": "Linked issue" }'
+if [ -f "$(dirname "${BASH_SOURCE[0]}")/../.github/workflows/ci.yml" ] \
+	|| gh api --silent "repos/$repo/contents/.github/workflows/ci.yml" >/dev/null 2>&1; then
+	checks+=', { "context": "CI" }'
+	echo "  required checks: Linked issue, CI"
+else
+	echo "  required checks: Linked issue (no ci.yml found)"
+fi
 # actor_id 5 = the "Admin" repository role; DeployKey = any deploy key with write access.
 ruleset=$(cat <<'JSON'
 {
@@ -93,18 +106,25 @@ ruleset=$(cat <<'JSON'
     } },
     { "type": "required_status_checks", "parameters": {
         "strict_required_status_checks_policy": false,
-        "required_status_checks": [ { "context": "Linked issue" } ]
+        "required_status_checks": [ __CHECKS__ ]
     } }
   ]
 }
 JSON
 )
-existing=$(gh api "repos/$repo/rulesets" --jq '.[] | select(.name == "Protect main") | .id' | head -n 1)
+ruleset=${ruleset/__CHECKS__/$checks}
+ruleset_failed() {
+	echo "  could not save the ruleset: main is NOT protected." >&2
+	echo "  On a private repo, rulesets need a paid GitHub plan (Pro, Team or Enterprise)." >&2
+	echo "  Make the repo public or upgrade the plan, then run this script again." >&2
+	exit 1
+}
+existing=$(gh api "repos/$repo/rulesets" --jq '.[] | select(.name == "Protect main") | .id' | head -n 1) || ruleset_failed
 if [ -n "$existing" ]; then
-	printf '%s' "$ruleset" | gh api --silent -X PUT "repos/$repo/rulesets/$existing" --input -
+	printf '%s' "$ruleset" | gh api --silent -X PUT "repos/$repo/rulesets/$existing" --input - || ruleset_failed
 	echo "  updated (id $existing)"
 else
-	printf '%s' "$ruleset" | gh api --silent -X POST "repos/$repo/rulesets" --input -
+	printf '%s' "$ruleset" | gh api --silent -X POST "repos/$repo/rulesets" --input - || ruleset_failed
 	echo "  created"
 fi
 

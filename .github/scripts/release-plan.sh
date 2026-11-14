@@ -57,6 +57,14 @@ fi
 echo "Package changes since $last:"
 printf '%s\n' "$changes" | sed 's/^/  /'
 
+# A failed GitHub call must stop the release: guessing would turn a major
+# release into a patch, or drop changelog lines. Nothing is pushed before this
+# point, so the run can simply be started again.
+api_failed() {
+	echo "::error::Could not read $1 from GitHub. Nothing was released; re-run this workflow." >&2
+	exit 1
+}
+
 bump=patch
 seen_issues=" "   # issue numbers already in the changelog, space separated
 : > "$CHANGELOG_FILE"
@@ -78,10 +86,12 @@ for sha in $(git rev-list --reverse --no-merges "$last"..HEAD); do
 	echo "  ship   ${sha:0:7} $subject"
 	deployable_commits=$((deployable_commits + 1))
 
-	pr=$(gh api "repos/$GITHUB_REPOSITORY/commits/$sha/pulls" --jq '.[0].number // empty' 2>/dev/null || true)
+	pr=$(gh api "repos/$GITHUB_REPOSITORY/commits/$sha/pulls" --jq '.[0].number // empty') \
+		|| api_failed "the pull request of commit ${sha:0:7}"
 	lines=""
 	if [ -n "$pr" ]; then
-		labels=$(gh api "repos/$GITHUB_REPOSITORY/issues/$pr/labels" --jq '.[].name' 2>/dev/null || true)
+		labels=$(gh api "repos/$GITHUB_REPOSITORY/issues/$pr/labels" --jq '.[].name') \
+			|| api_failed "the labels of PR #$pr"
 		if grep -qx 'release:major' <<<"$labels"; then bump=major
 		elif grep -qx 'release:minor' <<<"$labels" && [ "$bump" != major ]; then bump=minor
 		fi
@@ -93,7 +103,8 @@ for sha in $(git rev-list --reverse --no-merges "$last"..HEAD); do
 						closingIssuesReferences(first: 50) { nodes { number title } }
 					}
 				}
-			}' --jq '.data.repository.pullRequest.closingIssuesReferences.nodes[] | "\(.number)\t\(.title)"' 2>/dev/null || true)
+			}' --jq '.data.repository.pullRequest.closingIssuesReferences.nodes[] | "\(.number)\t\(.title)"') \
+			|| api_failed "the issues closed by PR #$pr"
 		while IFS=$'\t' read -r num title; do
 			[ -n "$num" ] || continue
 			case "$seen_issues" in *" $num "*) continue ;; esac
