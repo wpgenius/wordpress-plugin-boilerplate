@@ -4,6 +4,7 @@
 #
 #   bin/setup-github.sh                 # repo of the current git checkout
 #   bin/setup-github.sh owner/name      # a specific repo
+#   bin/setup-github.sh --linked-issue off   # don't require an issue for every PR
 #
 # Needs the GitHub CLI (`gh auth login`) with admin rights on the repo.
 #
@@ -12,6 +13,8 @@
 #   - labels: release:minor, release:major (bump the automatic version)
 #   - private vulnerability reporting (the "Report a vulnerability" button SECURITY.md points to)
 #   - variable DEPLOY_ENABLED=false (only if not set yet), environment "production"
+#   - variable REQUIRE_LINKED_ISSUE: whether every PR must close an issue. On by
+#     default. Asked once when run in a terminal; --linked-issue on|off sets it.
 #   - deploy key "release-bot" (write) + secret RELEASE_DEPLOY_KEY: the release
 #     workflow pushes its version-bump commit to main with this key
 #   - ruleset "Protect main" on the default branch: no deletion, no force-push,
@@ -26,7 +29,17 @@
 set -euo pipefail
 
 command -v gh >/dev/null || { echo "Install the GitHub CLI first: https://cli.github.com" >&2; exit 1; }
-repo=${1:-$(gh repo view --json nameWithOwner --jq .nameWithOwner)}
+repo="" linked=""
+while [ $# -gt 0 ]; do
+	case "$1" in
+		--linked-issue) linked=${2:-}; shift 2 ;;
+		-h|--help) sed -n '2,/^set -euo/p' "$0" | sed '$d; s/^# \{0,1\}//'; exit 0 ;;
+		-*) echo "Unknown option $1 (see $0 --help)" >&2; exit 1 ;;
+		*) repo=$1; shift ;;
+	esac
+done
+case "$linked" in ''|on|off) ;; *) echo "--linked-issue takes on or off" >&2; exit 1 ;; esac
+[ -n "$repo" ] || repo=$(gh repo view --json nameWithOwner --jq .nameWithOwner)
 [[ "$repo" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]] || { echo "Usage: $0 [owner/name]" >&2; exit 1; }
 echo "Configuring $repo"
 
@@ -57,6 +70,18 @@ else
 	echo "  DEPLOY_ENABLED=false"
 fi
 gh api --silent -X PUT "repos/$repo/environments/production"
+
+echo "- linked-issue rule"
+current=$(gh variable get REQUIRE_LINKED_ISSUE --repo "$repo" 2>/dev/null || true)
+if [ -z "$linked" ] && [ -z "$current" ] && [ -t 0 ]; then
+	read -r -p "  Require every pull request to close an issue? [Y/n] " answer
+	case "$answer" in n|N|no|NO) linked=off ;; *) linked=on ;; esac
+fi
+case "$linked" in
+	on)  gh variable set REQUIRE_LINKED_ISSUE --repo "$repo" --body true;  echo "  on: every PR must close an issue" ;;
+	off) gh variable set REQUIRE_LINKED_ISSUE --repo "$repo" --body false; echo "  off: PRs need no issue; the changelog uses PR titles" ;;
+	*)   echo "  ${current:+REQUIRE_LINKED_ISSUE already set to '$current'; }left as is (on unless it is 'false')" ;;
+esac
 
 echo "- release deploy key"
 if gh secret list --repo "$repo" --json name --jq '.[].name' | grep -qx RELEASE_DEPLOY_KEY; then

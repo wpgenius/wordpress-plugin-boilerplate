@@ -13,6 +13,7 @@
 #   --author NAME        Author name
 #   --author-uri URL     Author website
 #   --plugin-uri URL     Plugin website
+#   --contributors NAME  Your WordPress.org username(s), comma separated (readme.txt)
 #   --github OWNER/REPO  GitHub repository (for links in the README, templates and composer.json)
 #   --yes                Don't ask for confirmation (for scripts)
 #
@@ -31,7 +32,7 @@ die() { printf 'Error: %s\n' "$*" >&2; exit 1; }
 command -v perl >/dev/null || die "perl is required (it comes with macOS and Linux)."
 
 # ---------------------------------------------------------------- arguments
-NAME="" VENDOR="" FUNC="" DESCRIPTION="" AUTHOR="" AUTHOR_URI="" PLUGIN_URI="" GITHUB="" YES=0
+NAME="" VENDOR="" FUNC="" DESCRIPTION="" AUTHOR="" AUTHOR_URI="" PLUGIN_URI="" CONTRIBUTORS="" GITHUB="" YES=0
 while [ $# -gt 0 ]; do
 	case "$1" in
 		--vendor) VENDOR=${2:-}; shift 2 ;;
@@ -40,9 +41,10 @@ while [ $# -gt 0 ]; do
 		--author) AUTHOR=${2:-}; shift 2 ;;
 		--author-uri) AUTHOR_URI=${2:-}; shift 2 ;;
 		--plugin-uri) PLUGIN_URI=${2:-}; shift 2 ;;
+		--contributors) CONTRIBUTORS=${2:-}; shift 2 ;;
 		--github) GITHUB=${2:-}; shift 2 ;;
 		--yes|-y) YES=1; shift ;;
-		-h|--help) sed -n '2,19p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+		-h|--help) sed -n '2,20p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
 		-*) die "unknown option $1 (see bin/rename.sh --help)" ;;
 		*) [ -z "$NAME" ] || die "give the plugin name once, in quotes: bin/rename.sh \"Acme Events\""; NAME=$1; shift ;;
 	esac
@@ -77,6 +79,7 @@ fi
 [ -n "$DESCRIPTION" ] || ask DESCRIPTION "One-line description" ""
 [ -n "$AUTHOR" ]      || ask AUTHOR "Author (you or your company)" ""
 [ -n "$AUTHOR_URI" ]  || ask AUTHOR_URI "Author website (optional)" ""
+[ -n "$CONTRIBUTORS" ] || ask CONTRIBUTORS "Your WordPress.org username (optional; for readme.txt)" ""
 [ -n "$VENDOR" ]      || ask VENDOR "PHP namespace vendor, one word" "$(studly "${AUTHOR:-WPGenius}")"
 [ -n "$GITHUB" ]      || ask GITHUB "GitHub repository, owner/name (optional)" ""
 
@@ -101,6 +104,8 @@ KEBAB=$(printf '%s' "$FUNC" | tr '_' '-')
 if [ -n "$GITHUB" ]; then
 	[[ "$GITHUB" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]] || die "--github must look like owner/name"
 fi
+# WordPress.org usernames: lowercase letters, numbers, - and _, comma separated.
+CONTRIBUTORS=$(printf '%s' "$CONTRIBUTORS" | tr '[:upper:]' '[:lower:]' | perl -pe 's/[^a-z0-9_,-]+//g; s/,+/, /g; s/^[, ]+|[, ]+$//g')
 [ -n "$PLUGIN_URI" ] || { [ -n "$GITHUB" ] && PLUGIN_URI="https://github.com/$GITHUB"; } || true
 
 # ---------------------------------------------------------------- confirm
@@ -113,6 +118,7 @@ Your plugin:
   Prefix          $FUNC   (options, hooks, functions)   constants: ${CONST}_*
                   $KEBAB-*   (script handles, CSS classes, URL slugs)
   Author          ${AUTHOR:-(unchanged)}${AUTHOR_URI:+  <$AUTHOR_URI>}
+  Contributors    ${CONTRIBUTORS:-(not set: readme.txt gets a placeholder to replace)}
   GitHub          ${GITHUB:-(not set)}
   Version         reset to 1.0.0, changelog emptied
 
@@ -125,7 +131,7 @@ fi
 
 # ---------------------------------------------------------------- rename
 export NAME SLUG VENDOR PREFIX CONST FUNC KEBAB GITHUB OLD_SLUG OLD_NAME OLD_REPO
-export DESCRIPTION AUTHOR AUTHOR_URI PLUGIN_URI
+export DESCRIPTION AUTHOR AUTHOR_URI PLUGIN_URI CONTRIBUTORS
 
 files=$(grep -rlI --exclude-dir={.git,vendor,node_modules} \
 	--exclude={README.md,composer.lock,package-lock.json,rename.sh,'.*cache'} \
@@ -163,6 +169,8 @@ perl -pi -e '
 # Version 1.0.0 and an empty changelog: the first release of your plugin is v1.0.0.
 perl -pi -e 's/^( \* Version:\s+)\S+/${1}1.0.0/; s/(define\(\s*'"'"'[A-Z0-9_]+_VERSION'"'"'\s*,\s*'"'"')[^'"'"']*/${1}1.0.0/' "$SLUG.php"
 if [ -f readme.txt ]; then
+	# Never keep the boilerplate author's WordPress.org username.
+	CONTRIB=${CONTRIBUTORS:-your-wordpress-org-username} perl -pi -e 's/^(Contributors:[ \t]*).*/$1$ENV{CONTRIB}/i' readme.txt
 	perl -0pi -e '
 		s/^(Stable tag:[ \t]*)\S+/${1}1.0.0/mi;
 		s/^(== Changelog ==[ \t]*\n).*?(?=^== |\z)/$1\n/ms;
@@ -196,6 +204,11 @@ if [ -n "$left" ]; then
 	echo
 	echo "Note: these files still mention the boilerplate; check them by hand:"
 	printf '  %s\n' $left
+fi
+if [ -z "$CONTRIBUTORS" ] && [ -f readme.txt ]; then
+	echo
+	echo "Note: set 'Contributors:' in readme.txt to your WordPress.org username"
+	echo "      (it now holds a placeholder), or delete the line for a private plugin."
 fi
 if [ -d vendor ] || [ -d node_modules ]; then
 	echo

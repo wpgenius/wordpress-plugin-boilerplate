@@ -59,6 +59,9 @@ phpstan.neon.dist
 /tests
 phpunit.xml
 phpunit.xml.dist
+phpunit-integration.xml.dist
+.wp-env.json
+.wp-env.override.json
 .phpunit.result.cache
 .phpunit.cache
 

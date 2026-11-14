@@ -161,6 +161,65 @@ The first push to `main` publishes **v1.0.0** ("Initial release") with the plugi
 zip; the version comes from the plugin header you reset in step 2. From then on, every change follows
 the flow below: open an issue, branch, PR, merge.
 
+## Your first feature in 10 minutes
+
+A small, complete change to see how the pieces fit: one new setting, and a
+shortcode that uses it. The names below are the boilerplate's; after renaming,
+use your own prefix instead of `myplugin`.
+
+**1. Add a setting.** In `src/Admin/Settings.php`, add one entry to the
+`general` section of `fields()`:
+
+```php
+'greeting' => array(
+	'type'    => 'text',
+	'label'   => __( 'Greeting', 'wordpress-plugin-boilerplate' ),
+	'default' => 'Hello',
+),
+```
+
+That is all a setting needs. It is now shown on the settings page, sanitised
+when saved, and readable anywhere with `get_setting( 'greeting' )`.
+
+**2. Add a shortcode.** In `src/Frontend/Shortcodes.php`, register it in the
+constructor:
+
+```php
+add_shortcode( 'myplugin_hello', array( $this, 'render_hello' ) );
+```
+
+and add its method to the class:
+
+```php
+/**
+ * [myplugin_hello name="Asha"]
+ *
+ * @param array|string $atts Shortcode attributes.
+ * @return string
+ */
+public function render_hello( $atts ) {
+	$atts = shortcode_atts( array( 'name' => 'world' ), $atts, 'myplugin_hello' );
+
+	return '<p>' . esc_html( self::get_setting( 'greeting' ) . ', ' . $atts['name'] . '!' ) . '</p>';
+}
+```
+
+**3. Try it.** Open **Settings → (your plugin)**: the Greeting field is there.
+Put `[myplugin_hello name="Asha"]` on a page and view it: "Hello, Asha!".
+Change the greeting, save, reload.
+
+**What you just used**
+- The settings array: one entry gives you the field, its saving and its default.
+- `self::get_setting()`: every class extends `Api`, which holds the shared helpers.
+- `shortcode_atts()` and `esc_html()`: give attributes a default, and escape
+  everything you print.
+
+**Next:** run `composer phpcs` to check the code style (`composer phpcbf` fixes
+small things, like the alignment of the new array entry), then ship it the way
+every change ships: issue, branch, pull request (see [How changes ship](#how-changes-ship)).
+When you no longer need an example (the items post type, the daily report),
+remove it; `src/Plugin.php` lists every part that is loaded.
+
 ## Local development
 
 **WordPress in Docker** (mounts this repo as the plugin):
@@ -187,7 +246,8 @@ composer install
 | `composer lint` | PHP syntax check |
 | `composer phpcs` / `composer phpcbf` | WordPress Coding Standards (check / auto-fix) |
 | `composer phpstan` | Static analysis: wrong types, missing methods, unchecked `false`/`WP_Error` (level in `phpstan.neon.dist`) |
-| `composer test` | Unit tests (PHPUnit + Brain Monkey) |
+| `composer test` | Unit tests (PHPUnit + Brain Monkey, no WordPress needed) |
+| `npm run env -- start` then `npm run test:integration` | Integration tests in a real WordPress (wp-env, needs Docker): activation, uninstall, REST, AJAX permissions. `npm run test:integration:multisite` runs them as a network. `npm run env -- stop` when done |
 | `composer make-pot` | Regenerate `languages/*.pot` |
 | `npm ci` | Install the JS tools |
 | `npm run build` / `npm start` | Build the blocks into `build/` (once / watch) |
@@ -203,10 +263,10 @@ issue  →  branch  →  pull request (Closes #N)  →  squash merge to main  �
 
 - **`main` is protected.** Changes go through pull requests, merged with squash.
   Repository admins can still bypass the rules (e.g. a quick edit on GitHub).
-- **Every PR closes an issue.** The *Linked issue* check fails a PR whose
+- **Every PR closes an issue** (you can switch this off: `bin/setup-github.sh --linked-issue off`). The *Linked issue* check fails a PR whose
   description has no `Closes #N`. One request with several changes = one issue per
   change, delivered in one PR.
-- **CI** runs on every PR and must pass before merging: PHP 7.4–8.5 syntax, unit tests, PHPCS, PHPStan, JS/CSS lint, block build and WordPress Plugin Check.
+- **CI** runs on every PR and must pass before merging: PHP 7.4–8.5 syntax, unit tests, integration tests in WordPress (lowest supported and latest), PHPCS, PHPStan, JS/CSS lint, block build and WordPress Plugin Check.
   Plugin Check fails when `Tested up to` in `readme.txt` is behind the latest WordPress,
   so bump it after testing each new WordPress version. In the boilerplate itself it
   also warns about the placeholder names ("plugin" in the name, the `myplugin_`
@@ -325,7 +385,8 @@ blocks/interactive/       Interactivity API block: render.php + view.js (data-wp
 templates/                HTML templates; themes override them in <theme>/wordpress-plugin-boilerplate/
 assets/                   admin and front-end CSS/JS
 languages/                translation template (.pot)
-tests/                    PHPUnit unit tests (Brain Monkey, no WordPress needed)
+tests/Unit/               unit tests (Brain Monkey, no WordPress needed)
+tests/Integration/        integration tests, run in a real WordPress with wp-env
 ```
 
 **Add a setting:** one entry in `Settings::fields()`, then read it anywhere

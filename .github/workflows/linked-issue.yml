@@ -4,6 +4,10 @@ name: Linked issue
 # issue in this repo ("Closes #12" in its description). The release changelog
 # is built from those issues. The "Protect main" ruleset makes this check
 # required; Dependabot PRs pass automatically and repo admins can bypass.
+#
+# Don't want this rule? Set the repo variable REQUIRE_LINKED_ISSUE to "false"
+# (bin/setup-github.sh --linked-issue off does it). The check then always
+# passes, and the changelog uses pull request titles instead of issue titles.
 
 on:
   pull_request:
@@ -23,8 +27,13 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           PR: ${{ github.event.pull_request.number }}
           AUTHOR: ${{ github.event.pull_request.user.login }}
+          REQUIRED: ${{ vars.REQUIRE_LINKED_ISSUE }}
         run: |
           set -euo pipefail
+          if [ "$REQUIRED" = "false" ]; then
+            echo "REQUIRE_LINKED_ISSUE is false: no issue needed."
+            exit 0
+          fi
           if [ "$AUTHOR" = "dependabot[bot]" ]; then
             echo "Dependabot PR: no issue needed."
             exit 0

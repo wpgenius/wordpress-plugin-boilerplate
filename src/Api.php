@@ -62,18 +62,26 @@ class Api {
 	 */
 
 	/**
-	 * Check a request's nonce and, optionally, the user's capability.
+	 * Check a request's nonce and the user's capability. Both are needed: the
+	 * nonce proves the request came from your own page, the capability proves
+	 * this user may do it.
 	 *
-	 * @param string      $action     Nonce action.
-	 * @param string|null $capability Capability required, or null for none (e.g. visitors).
-	 * @param string      $field      Request field holding the nonce.
+	 * The capability is required on purpose, so it can't be forgotten. Use the
+	 * one that fits the action: 'manage_options' for settings, 'edit_posts' for
+	 * content, 'read' for any logged-in user. For an action open to visitors
+	 * (wp_ajax_nopriv_*), don't use this helper: check only the nonce with
+	 * check_ajax_referer(), and treat everything in the request as untrusted.
+	 *
+	 * @param string $action     Nonce action.
+	 * @param string $capability Capability the current user must have.
+	 * @param string $field      Request field holding the nonce.
 	 * @return bool
 	 */
-	public static function verify_request( $action, $capability = null, $field = 'nonce' ) {
+	public static function verify_request( $action, $capability, $field = 'nonce' ) {
 		if ( ! check_ajax_referer( $action, $field, false ) ) {
 			return false;
 		}
-		return null === $capability || current_user_can( $capability );
+		return current_user_can( $capability );
 	}
 
 	/*

@@ -35,8 +35,9 @@ concurrency:
 jobs:
   release:
     runs-on: ubuntu-latest
-    # The bot's own release commit never needs another release.
-    if: ${{ !startsWith(github.event.head_commit.message, 'Release v') }}
+    # The bot's own release commit never needs another release. The author is
+    # checked too, so a pull request titled "Release v..." still gets released.
+    if: ${{ !(startsWith(github.event.head_commit.message, 'Release v') && github.event.head_commit.author.name == 'github-actions[bot]') }}
     outputs:
       released: ${{ steps.publish.outputs.released }}
       tag: ${{ steps.plan.outputs.tag }}
