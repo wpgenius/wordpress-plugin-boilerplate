@@ -22,6 +22,16 @@ class AjaxTest extends \WP_Ajax_UnitTestCase {
 		parent::set_up();
 		Installer::activate();
 		reset_phpmailer_instance();
+
+		// WordPress sends from wordpress@<site domain>. A test site on
+		// "localhost" makes that an invalid address and the email is refused,
+		// so give the tests a valid sender.
+		add_filter(
+			'wp_mail_from',
+			static function () {
+				return 'wordpress@example.org';
+			}
+		);
 	}
 
 	/**
