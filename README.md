@@ -20,8 +20,8 @@ Rename it with one command and start building.
   registered, sanitised, rendered and readable with `get_setting()`.
 - Working examples: a custom post type with an admin column, a REST API route,
   a shortcode with a "Load more" button that uses it, an admin-ajax action,
-  a dynamic block and an interactive block built with the Interactivity API, a dynamic block, a scheduled email with
-  `{placeholders}`, theme-overridable templates, and a "View details" popup for
+  a dynamic block, an interactive block built with the Interactivity API,
+  a scheduled email with `{placeholders}`, theme-overridable templates, and a "View details" popup for
   plugins that aren't on WordPress.org.
 - Activation, upgrades and an uninstall that only deletes data when asked.
   Multisite aware: network activation and deactivation run on every site, and
@@ -75,6 +75,15 @@ you can open the settings page and the block editor too. The demo is described i
 and WordPress.org uses the same file for the "Live Preview" button if you publish there.
 For your own plugin, the demo works once the repo is public and has a release
 (Playground downloads `releases/latest/download/<slug>.zip`).
+
+## Requirements
+
+- **To run the plugin:** WordPress 6.5 or later and PHP 7.4 or later.
+- **To start your own plugin:** `git`, `perl` and the [GitHub CLI](https://cli.github.com)
+  (see below).
+- **For development (optional):** Composer for the PHP checks and tests,
+  Node 20.19+ or 22.12+ (`.nvmrc`) for the block build and JS/CSS lint, and
+  Docker for the local WordPress site and the integration tests.
 
 ## Start a new plugin
 
@@ -365,8 +374,9 @@ reach them without a plugin update. Issues and changes to the plugin itself belo
    (or minor/major with a label). With no such tags, the first release takes the
    header version. If the header is ahead of your latest tag, line them up first.
 6. **Merge and protect.** Open a pull request that closes an issue, merge it, and run
-   `bin/setup-github.sh` (admin rights needed). Changing `.distignore` counts as
-   deployable, so that merge usually makes the first automatic release.
+   `bin/setup-github.sh` (admin rights needed). That merge usually makes the first
+   automatic release: with no `vX.Y.Z` tag yet there is nothing to compare with,
+   and otherwise it releases if the new `.distignore` changes what goes in the zip.
 
 ## Plugin structure
 
