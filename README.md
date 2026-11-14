@@ -1,15 +1,53 @@
 # WordPress plugin boilerplate
 
-A starter kit for WordPress plugins: plugin structure, a local Docker environment,
-coding-standards tooling, CI, automatic versioned releases and optional deploys,
-all wired up and ready on day one.
+A starter kit for WordPress plugins that is ready on day one: a clean,
+namespaced plugin with working examples, plus the whole workflow around it
+(coding standards, tests, CI, automatic versioned releases and optional deploys).
+Rename it with one command and start building.
 
 [![Latest release](https://img.shields.io/github/v/release/wpgenius/wordpress-plugin-boilerplate)](https://github.com/wpgenius/wordpress-plugin-boilerplate/releases/latest)
+[![CI](https://github.com/wpgenius/wordpress-plugin-boilerplate/actions/workflows/ci.yml/badge.svg)](https://github.com/wpgenius/wordpress-plugin-boilerplate/actions/workflows/ci.yml)
+[![License: GPL v3+](https://img.shields.io/badge/license-GPL--3.0--or--later-blue)](LICENSE)
+
+## What you get
+
+**A plugin you can keep, change or trim**
+- Namespaced classes in `src/`, one per concern (admin, front end, AJAX, cron,
+  post types, blocks), all sharing one `Api` helper class. No Composer needed
+  at runtime: it runs straight from a clone or a zip.
+- A **settings page built from one array**: add a field in one line and get it
+  registered, sanitised, rendered and readable with `get_setting()`.
+- Working examples: a custom post type with an admin column, a shortcode with
+  an AJAX "Load more" button, a dynamic block, a scheduled email with
+  `{placeholders}`, theme-overridable templates, and a "View details" popup for
+  plugins that aren't on WordPress.org.
+- Activation, upgrades and an uninstall that only deletes data when asked.
+  Multisite aware.
+
+**The workflow around it**
+- WordPress Coding Standards, PHP compatibility (7.4–8.4), unit tests, JS/CSS
+  lint and WordPress Plugin Check, all run on every pull request.
+- **Automatic releases:** merge a pull request and, if the plugin changed, a new
+  version is tagged, the changelog is written from the closed issues, and a
+  zip is published. Docs-only changes don't make a release.
+- **Optional deploys** to FTPS, SSH or WordPress.org, behind an on/off switch.
+- A protected `main` branch, issue-linked pull requests, Dependabot, and a
+  one-command GitHub setup.
+- A local WordPress in Docker, and a rename script so the first five minutes
+  are easy.
+
+## Why this boilerplate
+
+Most boilerplates give you folders. This one gives you a plugin that already
+works, following WordPress best practices (escaping, nonces, capabilities,
+i18n, dbDelta, block.json), and the release process most teams build by hand
+later. Everything is plain PHP and shell, readable in an afternoon, with no
+framework to learn.
 
 ## Start a new plugin
 
-You need `git`, `perl` (preinstalled on macOS and Linux) and, for step 4, the
-[GitHub CLI](https://cli.github.com) signed in with `gh auth login`.
+You need `git`, `perl` (both preinstalled on macOS and Linux) and, for step 4,
+the [GitHub CLI](https://cli.github.com) signed in with `gh auth login`.
 The examples create a plugin called **Acme Events**; use your own names.
 
 ### 1. Get the code
@@ -27,50 +65,36 @@ cd acme-events && rm -rf .git && git init -b main
 
 ### 2. Rename the plugin
 
-Pick your names, then run the rename from the repo root:
-
-| Variable | Used for | Boilerplate value | Example |
-|---|---|---|---|
-| `SLUG` | folder, main file, text domain, block names | `wordpress-plugin-boilerplate` | `acme-events` |
-| `NAME` | plugin name shown in WordPress | `Plugin boilerplate for WordPress` | `Acme Events` |
-| `VENDOR` | first part of the PHP namespace (you or your company) | `WPGenius` | `Acme` |
-| `PREFIX` | second part of the PHP namespace (the plugin) | `MyPlugin` | `Events` |
-| `CONST` | constant prefix | `MYPLUGIN` | `ACME_EVENTS` |
-| `FUNC` | option, hook, function, CSS and JS prefix | `myplugin` | `acme_events` |
-
-So `WPGenius\MyPlugin\Admin\Settings` becomes `Acme\Events\Admin\Settings`.
+From the plugin folder, run:
 
 ```bash
-SLUG=acme-events NAME="Acme Events" VENDOR=Acme PREFIX=Events CONST=ACME_EVENTS FUNC=acme_events; export SLUG NAME VENDOR PREFIX CONST FUNC
+bin/rename.sh
 ```
 
-Remove this repo's Claude Code plugin; it belongs to the boilerplate, not to your
-plugin (install it from here instead, see
-[With Claude Code](#with-claude-code-optional)):
+It asks for the plugin name, a one-line description and the author, suggests
+everything else, shows you the result and asks before changing anything:
+
+```
+Your plugin:
+  Name            Acme Events
+  Folder / slug   acme-events   (main file: acme-events.php, text domain: acme-events)
+  PHP namespace   Acme\AcmeEvents   (e.g. Acme\AcmeEvents\Admin\Settings)
+  Prefix          acme_events   (options, hooks, functions)   constants: ACME_EVENTS_*
+  Version         reset to 1.0.0, changelog emptied
+```
+
+It renames every file, class, constant, function, option, hook, block and text
+domain, fills in the plugin header, resets the version to 1.0.0, and removes
+this repo's own Claude Code plugin (`claude/`, `.claude-plugin/`).
+
+You can also pass everything at once, e.g. for scripts:
 
 ```bash
-rm -rf .claude-plugin claude
+bin/rename.sh "Acme Events" --vendor Acme --author "Acme Inc" --github acme/acme-events --yes
 ```
 
-```bash
-grep -rlI --exclude-dir={.git,vendor,node_modules} --exclude={README.md,composer.lock,package-lock.json} -e wordpress-plugin-boilerplate -e 'Plugin boilerplate for WordPress' -e 'WPGenius\\' -ie myplugin . | xargs perl -pi -e 's/wordpress-plugin-boilerplate/$ENV{SLUG}/g; s/Plugin boilerplate for WordPress/$ENV{NAME}/g; s/WPGenius\\/$ENV{VENDOR}\\/g; s/MyPlugin/$ENV{PREFIX}/g; s/MYPLUGIN/$ENV{CONST}/g; s/myplugin/$ENV{FUNC}/g'
-```
-
-```bash
-mv myplugin.php "$SLUG.php" && mv languages/wordpress-plugin-boilerplate.pot "languages/$SLUG.pot"
-```
-
-Start your own version history at 1.0.0. The header version, the `Stable tag` and
-the changelog still carry the boilerplate's own releases:
-
-```bash
-perl -0pi -e 's/^([ \t\/*#@]*Version:[ \t]*)\S+/${1}1.0.0/m' "$SLUG.php" && perl -pi -e 's/^(Stable tag:[ \t]*)\S+/${1}1.0.0/i' readme.txt && perl -0pi -e 's/^(== Changelog ==[ \t]*\n).*/$1/ms' readme.txt
-```
-
-Then edit by hand: the author, URIs and description in the plugin header and
-`readme.txt`, the `name` in `composer.json` (`vendor/package`), and the menu
-title in `src/Admin/Settings.php`. Replace this README with your own. Keep post
-type names (`FUNC` + `_item`) within 20 characters.
+See `bin/rename.sh --help` for every option. Afterwards, read through the plugin
+header and `readme.txt`, and replace this README with your own.
 
 ### 3. Run it locally
 
@@ -149,11 +173,16 @@ issue  →  branch  →  pull request (Closes #N)  →  squash merge to main  �
 - **Every PR closes an issue.** The *Linked issue* check fails a PR whose
   description has no `Closes #N`. One request with several changes = one issue per
   change, delivered in one PR.
-- **CI** runs on every PR: PHP 7.4–8.4 syntax, unit tests, PHPCS, JS/CSS lint, block build.
+- **CI** runs on every PR: PHP 7.4–8.4 syntax, unit tests, PHPCS, JS/CSS lint, block build and WordPress Plugin Check.
+  Plugin Check fails when `Tested up to` in `readme.txt` is behind the latest WordPress,
+  so bump it after testing each new WordPress version. In the boilerplate itself it
+  also warns about the placeholder names ("plugin" in the name, the `myplugin_`
+  prefix); those warnings go away once you run `bin/rename.sh`.
 - **Releases are automatic.** On each merge to `main`, the
   [Release workflow](.github/workflows/release.yml):
-  1. releases only if a *deployable* file changed: anything not excluded by
-     [`.distignore`](.distignore). Docs, CI and config changes don't release;
+  1. releases only if the plugin zip would change: it compares the package
+     (everything [`.distignore`](.distignore) doesn't exclude) with the last
+     release. Docs, CI and config changes don't release;
   2. bumps the version: patch by default, or minor/major when the PR has the
      `release:minor` / `release:major` label;
   3. writes the changelog (one line per closed issue) and the new version into
@@ -280,7 +309,9 @@ don't need the same way.
 | `readme.txt` | WordPress.org readme; version and changelog are maintained by the release workflow |
 | `.distignore` | What stays out of the zip and deploys (and so never triggers a release) |
 | `.github/` | CI, release, deploy, linked-issue check, Dependabot |
+| `bin/rename.sh` | Turns the boilerplate into your plugin (names, namespace, version) |
 | `bin/setup-github.sh` | One-time GitHub settings for a new repo |
+| `CONTRIBUTING.md`, `SECURITY.md`, `.github/ISSUE_TEMPLATE/` | How to contribute and report security issues |
 | `.claude-plugin/`, `claude/repo-standard/` | Claude Code plugin with `/repo-standard:adopt` and `/repo-standard:new` (not shipped) |
 | `docker-compose.yml`, `.env.example` | Local WordPress + MariaDB + phpMyAdmin |
 | `composer.json`, `phpcs.xml.dist`, `phpunit.xml.dist` | PHP dev tools: coding standards, tests |

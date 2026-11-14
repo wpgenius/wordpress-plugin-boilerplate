@@ -7,8 +7,12 @@
 #
 # Rules:
 # - Only strict vMAJOR.MINOR.PATCH tags count as previous releases.
-# - A release happens when a commit since the last release touched a
-#   deployable file (anything .distignore does not exclude).
+# - A release happens only when the plugin zip would change: the package built
+#   at the last release tag is compared with the one built at HEAD (each with
+#   its own .distignore). Docs, CI, config and .distignore-only edits that
+#   leave the zip identical make no release.
+# - The changelog lists the commits that touched a deployable file (anything
+#   .distignore does not exclude).
 # - Bump: patch, or minor/major when a released PR has the label
 #   release:minor / release:major (the highest wins).
 # - Changelog: the titles of the issues closed by the released PRs; a commit
@@ -28,7 +32,7 @@ CHANGELOG_FILE=${CHANGELOG_FILE:-changelog.txt}
 out() { echo "$1"; if [ -n "${GITHUB_OUTPUT:-}" ]; then echo "$1" >> "$GITHUB_OUTPUT"; fi; }
 
 semver='^v[0-9]+\.[0-9]+\.[0-9]+$'
-last=$(git tag --list 'v*' --sort=-v:refname | grep -E "$semver" | head -n 1 || true)
+last=$(git tag --list 'v*' --merged HEAD --sort=-v:refname | grep -E "$semver" | head -n 1 || true)
 main_file=$(main_plugin_file)
 
 if [ -z "$last" ]; then
@@ -43,10 +47,21 @@ if [ -z "$last" ]; then
 fi
 
 echo "Last release: $last"
+
+changes=$(package_diff "$last" HEAD)
+if [ -z "$changes" ]; then
+	echo "The plugin package is identical to $last: no release."
+	out "release=false"
+	exit 0
+fi
+echo "Package changes since $last:"
+printf '%s\n' "$changes" | sed 's/^/  /'
+
 bump=patch
 seen_issues=" "   # issue numbers already in the changelog, space separated
 : > "$CHANGELOG_FILE"
 deployable_commits=0
+distignore_commits=""   # commits that only changed .distignore (used if nothing else explains the change)
 
 # Oldest first, so the changelog reads in merge order.
 for sha in $(git rev-list --reverse --no-merges "$last"..HEAD); do
@@ -54,6 +69,9 @@ for sha in $(git rev-list --reverse --no-merges "$last"..HEAD); do
 	shipped=$(printf '%s\n' "$changed" | deployable_paths)
 	subject=$(git log -1 --format=%s "$sha")
 	if [ -z "$shipped" ]; then
+		if grep -qx '.distignore' <<<"$changed"; then
+			distignore_commits+="* $subject"$'\n'
+		fi
 		echo "  skip   ${sha:0:7} $subject (no deployable files)"
 		continue
 	fi
@@ -91,9 +109,12 @@ for sha in $(git rev-list --reverse --no-merges "$last"..HEAD); do
 done
 
 if [ "$deployable_commits" -eq 0 ]; then
-	echo "Nothing deployable changed since $last: no release."
-	out "release=false"
-	exit 0
+	# The zip changed only through .distignore (a file now ships or no longer does).
+	if [ -n "$distignore_commits" ]; then
+		printf '%s' "$distignore_commits" > "$CHANGELOG_FILE"
+	else
+		printf '* Maintenance release.\n' > "$CHANGELOG_FILE"
+	fi
 fi
 
 IFS=. read -r major minor patch <<<"${last#v}"

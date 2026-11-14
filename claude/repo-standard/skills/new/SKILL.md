@@ -19,7 +19,7 @@ Read `$STD/README.md`, section "Start a new plugin". It is the source of truth f
 ## 2. One round of questions
 `$ARGUMENTS` may already give the plugin name. Ask everything else at once:
 - **Plugin name and description:** the name, plus a one-line description.
-- **Rename variables:** every variable the README's rename step lists (slug, prefixes, namespace parts and so on). Offer values derived from the name.
+- **Rename values:** what `bin/rename.sh --help` lists (vendor, prefix). Offer the values it would derive from the name.
 - **Author details:** author name and URI, and plugin URI. Never keep the boilerplate's author unless the user says so.
 - **GitHub repo:** the owner (user or organisation) and the visibility (private recommended).
 - **Folder:** where to create it. Default: next to the current folder.
@@ -32,12 +32,13 @@ Before creating anything, confirm the plan in one message:
 
 ## 3. Build the plugin locally
 1. **Get a fresh copy.** Clone with a fresh history, as the README describes ("clone this one and start a fresh history").
-2. **Rename.** Run the README's rename commands exactly, with the chosen values. That includes removing the boilerplate's own `.claude-plugin/` and `claude/` folders.
-3. **Hand edits.** Make the README's manual edits: description, author and URIs, and the composer `name`.
-4. **Reset the version and changelog.** The template carries the boilerplate's own release history.
-   - Set the header `Version:` and the `readme.txt` `Stable tag:` to `1.0.0`.
-   - Empty `== Changelog ==`, keeping the heading.
-   - Regenerate the `.pot` file (`composer make-pot`) if Composer is set up.
+2. **Rename.** Run `bin/rename.sh` with the chosen values and `--yes`, for example:
+   ```bash
+   bin/rename.sh "Acme Events" --vendor Acme --prefix acme_events --description "…" --author "…" --author-uri "…" --github OWNER/SLUG --yes
+   ```
+   It renames every file and string, fills in the plugin header, resets the version to 1.0.0, empties the changelog and removes the boilerplate's own `.claude-plugin/` and `claude/` folders. If the README describes a different rename step, follow the README.
+3. **Hand edits.** Anything the script reports as left over, `readme.txt` (description, FAQ, Contributors), and regenerate the `.pot` file (`composer make-pot`) if Composer is set up.
+4. **Version check.** Confirm the header `Version:`, the `*_VERSION` constant and `Stable tag:` all say `1.0.0`.
 5. **Write a README.** Replace `README.md` with a short one for this plugin: name, description, a "Development" pointer and "How changes ship". Keep the boilerplate's developer notes where they still apply.
 6. **Check:**
    - No leftover boilerplate names (anything unintended is a miss):

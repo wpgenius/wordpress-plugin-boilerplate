@@ -35,7 +35,7 @@ They're in `${CLAUDE_PLUGIN_ROOT}/scripts/`. Run them with `bash`.
 ## What the standard gives a repo
 
 - **Ignore files:** `.gitignore`, plus `.distignore`, which decides what ships. Anything `.distignore` doesn't exclude counts as deployable.
-- **Automatic releases:** `release.yml` and `.github/scripts/`. On each merge to `main` that changes a deployable file, the workflow:
+- **Automatic releases:** `release.yml` and `.github/scripts/`. On each merge to `main` that changes the plugin zip (compared with the last release), the workflow:
   1. bumps the version: patch by default, or minor/major with the `release:minor` or `release:major` label;
   2. writes the version and changelog into the plugin header (or `style.css` for a theme) and `readme.txt`;
   3. commits that to `main`;

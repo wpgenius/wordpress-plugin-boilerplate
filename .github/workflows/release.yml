@@ -1,8 +1,9 @@
 name: Release
 
-# Every merge to main is checked; a release is made only when a deployable file
-# changed (anything .distignore does not exclude). Docs-, CI- or config-only
-# merges make no release and no deploy.
+# Every merge to main is checked; a release is made only when the plugin zip
+# would change (the package, filtered by .distignore, is compared with the one
+# at the last release). Docs-, CI- or config-only merges make no release and
+# no deploy.
 #
 # Steps, in order:
 #   1. Work out the next version (patch by default; the merged PR's

@@ -40,10 +40,9 @@ deployable_paths() {
 	[ -n "$paths" ] || { rm -rf "$scratch"; return 0; }
 	ignored=$(cd "$scratch" && printf '%s\n' "$paths" | git check-ignore --no-index --stdin || true)
 	rm -rf "$scratch"
-	# .distignore itself is excluded from the zip, but changing it changes the zip.
 	printf '%s\n' "$paths" | while IFS= read -r p; do
 		[ -n "$p" ] || continue
-		if [ "$p" = ".distignore" ] || ! printf '%s\n' "$ignored" | grep -qxF -- "$p"; then
+		if ! printf '%s\n' "$ignored" | grep -qxF -- "$p"; then
 			echo "$p"
 		fi
 	done
@@ -59,4 +58,27 @@ build_package() {
 		find "$dest" -type l >&2
 		return 1
 	fi
+}
+
+# Builds the package as it is at a git revision, from committed files only
+# (untracked vendor/, node_modules/ etc. never count), using that revision's
+# own .distignore. Usage: package_at <rev> <dest>
+package_at() {
+	local rev="$1" dest="$2" tree
+	tree=$(mktemp -d)
+	git archive --format=tar "$rev" | tar -x -C "$tree"
+	( cd "$tree" && touch .distignore && build_package "$dest" )
+	rm -rf "$tree"
+}
+
+# Prints the files that differ between the packages at two revisions
+# (added, removed or changed); prints nothing when the zips would be identical.
+# Usage: package_diff <old-rev> <new-rev>
+package_diff() {
+	local work
+	work=$(mktemp -d)
+	package_at "$1" "$work/old"
+	package_at "$2" "$work/new"
+	( cd "$work" && diff -rq old new || true ) | sed -E 's#^Files old/(.*) and new/.* differ$#changed  \1#; s#^Only in old(/?)(.*): (.*)$#removed  \2/\3#; s#^Only in new(/?)(.*): (.*)$#added    \2/\3#; s#  /#  #'
+	rm -rf "$work"
 }

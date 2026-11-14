@@ -28,7 +28,7 @@ defined( 'ABSPATH' ) || exit;
 class Settings extends Api {
 
 	/**
-	 * Page slug (Settings → Plugin boilerplate) and settings group.
+	 * Page slug (Settings → <plugin name>) and settings group.
 	 */
 	const PAGE = 'myplugin_settings';
 
@@ -172,8 +172,8 @@ class Settings extends Api {
 	 */
 	public function add_page() {
 		add_options_page(
-			__( 'Plugin boilerplate settings', 'wordpress-plugin-boilerplate' ),
-			__( 'Plugin boilerplate', 'wordpress-plugin-boilerplate' ),
+			__( 'Plugin boilerplate for WordPress', 'wordpress-plugin-boilerplate' ),
+			__( 'Plugin boilerplate for WordPress', 'wordpress-plugin-boilerplate' ),
 			'manage_options',
 			self::PAGE,
 			array( $this, 'render_page' )
