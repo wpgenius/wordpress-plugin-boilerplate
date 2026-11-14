@@ -19,13 +19,13 @@
 		"test:integration:multisite": "wp-env run cli --env-cwd=wp-content/plugins/$(basename \"$PWD\") env WP_MULTISITE=1 vendor/bin/phpunit -- -c phpunit-integration.xml.dist"
 	},
 	"devDependencies": {
-		"@wordpress/block-editor": "^18.1.0",
-		"@wordpress/blocks": "^16.2.0",
-		"@wordpress/components": "^42.0.0",
-		"@wordpress/env": "^11.17.0",
-		"@wordpress/i18n": "^6.30.0",
-		"@wordpress/interactivity": "^7.0.0",
-		"@wordpress/scripts": "^34.2.0",
-		"@wordpress/server-side-render": "^6.33.0"
+		"@wordpress/block-editor": "^20.0.0",
+		"@wordpress/blocks": "^17.1.0",
+		"@wordpress/components": "^44.0.0",
+		"@wordpress/env": "^12.1.0",
+		"@wordpress/i18n": "^7.1.0",
+		"@wordpress/interactivity": "^8.1.0",
+		"@wordpress/scripts": "^37.1.0",
+		"@wordpress/server-side-render": "^7.1.0"
 	}
 }
