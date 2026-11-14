@@ -3,7 +3,7 @@
  * Plugin Name:       Plugin boilerplate for WordPress
  * Plugin URI:        https://github.com/wpgenius/wordpress-plugin-boilerplate
  * Description:       A starter kit for WordPress plugins: settings page, admin, front end, AJAX, cron, custom post type and a block.
- * Version:           2.0.2
+ * Version:           2.0.3
  * Requires at least: 6.1
  * Requires PHP:      7.4
  * Author:            Team WPGenius
@@ -19,7 +19,7 @@
 defined( 'ABSPATH' ) || exit;
 
 // The release workflow keeps MYPLUGIN_VERSION in sync with the Version header.
-define( 'MYPLUGIN_VERSION', '2.0.2' );
+define( 'MYPLUGIN_VERSION', '2.0.3' );
 define( 'MYPLUGIN_FILE', __FILE__ );
 define( 'MYPLUGIN_DIR_PATH', plugin_dir_path( __FILE__ ) );
 define( 'MYPLUGIN_DIR_URL', plugin_dir_url( __FILE__ ) );
