@@ -1,15 +1,15 @@
-# Copyright (C) 2026 Team WPGenius (Makarand Mane)
-# This file is distributed under the GPL-2.0-or-later.
+# Copyright (C) 2026 Team WPGenius
+# This file is distributed under the GPL-3.0-or-later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Plugin boilerplate for WordPress 1.0.0\n"
+"Project-Id-Version: Plugin boilerplate for WordPress 2.0.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/wordpress-plugin-boilerplate\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-13T20:29:48+00:00\n"
+"POT-Creation-Date: 2026-11-14T08:22:38+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: wordpress-plugin-boilerplate\n"
@@ -21,130 +21,227 @@ msgstr ""
 
 #. Plugin URI of the plugin
 #: myplugin.php:4
-msgid "https://wpgenius.in"
+msgid "https://github.com/wpgenius/wordpress-plugin-boilerplate"
 msgstr ""
 
 #. Description of the plugin
 #: myplugin.php:5
-msgid "WordPress plugin boilerplate with complete functionality"
+msgid "A starter kit for WordPress plugins: settings page, admin, front end, AJAX, cron, custom post type and a block."
 msgstr ""
 
 #. Author of the plugin
 #: myplugin.php:9
-msgid "Team WPGenius (Makarand Mane)"
+msgid "Team WPGenius"
 msgstr ""
 
 #. Author URI of the plugin
 #: myplugin.php:10
-msgid "https://makarandmane.com"
+msgid "https://wpgenius.in"
 msgstr ""
 
-#: includes/class-admin.php:62
-msgid "Events per page"
-msgstr ""
-
-#: includes/class-ajax.php:40
-msgid "Invalid user."
-msgstr ""
-
-#: includes/class-api.php:63
-msgid "Alert!"
-msgstr ""
-
-#: includes/class-api.php:64
-msgid "Edit event"
-msgstr ""
-
-#: includes/class-api.php:65
-msgid "Please contact administrator!"
-msgstr ""
-
-#: includes/class-api.php:66
-msgid "Saving event..."
-msgstr ""
-
-#: includes/class-api.php:67
-msgid "Save"
-msgstr ""
-
-#: includes/class-api.php:83
-msgid "Invalid security token sent."
-msgstr ""
-
-#: includes/class-settings.php:43
-msgid "Events Settings"
-msgstr ""
-
-#: includes/class-settings.php:44
+#: src/Admin/Admin.php:56
+#: blocks/example/edit.js:18
 msgid "Settings"
 msgstr ""
 
-#: includes/class-settings.php:61
-msgid "General preference"
+#: src/Admin/PluginInfo.php:76
+msgid "More information about this plugin"
 msgstr ""
 
-#: includes/class-settings.php:62
-msgid "E-mail preference"
+#: src/Admin/PluginInfo.php:77
+msgid "View details"
 msgstr ""
 
-#: includes/class-settings.php:63
-msgid "Uninstall preference"
+#: src/Admin/Settings.php:51
+msgid "General"
 msgstr ""
 
-#: includes/class-settings.php:66
-msgid "Class per page :"
+#: src/Admin/Settings.php:52
+msgid "How items are listed by the shortcode and the block."
 msgstr ""
 
-#: includes/class-settings.php:69
-msgid "Class reminder cron job:"
+#: src/Admin/Settings.php:56
+msgid "Items per page"
 msgstr ""
 
-#: includes/class-settings.php:70
-msgid "Schedule reminder Email (in minutes):"
+#: src/Admin/Settings.php:63
+#: blocks/example/edit.js:33
+msgid "Layout"
 msgstr ""
 
-#: includes/class-settings.php:73
-msgid "Delete Classroom database table:"
+#: src/Admin/Settings.php:66
+#: blocks/example/edit.js:37
+msgid "Grid"
 msgstr ""
 
-#: includes/class-settings.php:74
-msgid "Delete settings:"
+#: src/Admin/Settings.php:67
+#: blocks/example/edit.js:44
+msgid "List"
 msgstr ""
 
-#: includes/class-settings.php:92
-msgid "Save Settings"
+#: src/Admin/Settings.php:72
+msgid "Accent colour"
 msgstr ""
 
-#: includes/class-settings.php:101
-msgid "Choose general preference for Events for WPLMS below."
+#: src/Admin/Settings.php:77
+msgid "Load more button"
 msgstr ""
 
-#: includes/class-settings.php:106
-msgid "Choose preference for e-mail for Events below."
+#: src/Admin/Settings.php:78
+msgid "Show a button that loads the next page without reloading (AJAX)."
 msgstr ""
 
-#: includes/class-settings.php:112
-msgid "Choose plugin uninstallation preference below."
+#: src/Admin/Settings.php:84
+msgid "Daily report email"
 msgstr ""
 
-#: includes/class-settings.php:124
-msgid "Enable"
+#: src/Admin/Settings.php:85
+msgid "A scheduled (cron) email with the number of items published in the last day."
 msgstr ""
 
-#: includes/class-settings.php:125
-msgid "Disable"
+#: src/Admin/Settings.php:89
+msgid "Send the report"
 msgstr ""
 
-#: includes/class-settings.php:139
-#: includes/class-settings.php:146
-msgid "Yes"
+#: src/Admin/Settings.php:94
+msgid "Send at"
 msgstr ""
 
-#: includes/class-settings.php:140
-#: includes/class-settings.php:147
-msgid "No"
+#: src/Admin/Settings.php:95
+msgid "Site time, 24-hour."
 msgstr ""
 
-#: myplugin.php:36
-msgid "Plugin boilerplate for WordPress is missing its vendor/ folder. Run \"composer install\" in the plugin folder, or install a release zip."
+#: src/Admin/Settings.php:100
+msgid "Send to"
+msgstr ""
+
+#: src/Admin/Settings.php:101
+msgid "Leave empty to use the site admin email."
+msgstr ""
+
+#: src/Admin/Settings.php:106
+msgid "Subject"
+msgstr ""
+
+#: src/Admin/Settings.php:107
+msgid "{site_name}: {count} new items"
+msgstr ""
+
+#: src/Admin/Settings.php:112
+msgid "Message"
+msgstr ""
+
+#: src/Admin/Settings.php:113
+msgid ""
+"Hello,\n"
+"\n"
+"{count} items were published on {site_name} since {date}."
+msgstr ""
+
+#: src/Admin/Settings.php:119
+msgid "Advanced"
+msgstr ""
+
+#: src/Admin/Settings.php:123
+msgid "Delete data on uninstall"
+msgstr ""
+
+#: src/Admin/Settings.php:124
+msgid "When the plugin is deleted, also delete its settings, items and database table."
+msgstr ""
+
+#: src/Admin/Settings.php:175
+msgid "Plugin boilerplate settings"
+msgstr ""
+
+#: src/Admin/Settings.php:176
+msgid "Plugin boilerplate"
+msgstr ""
+
+#: src/Admin/Settings.php:438
+msgid "You can use:"
+msgstr ""
+
+#: src/Ajax.php:46
+msgid "Your session has expired. Reload the page."
+msgstr ""
+
+#: src/Frontend/Frontend.php:52
+msgid "Loading…"
+msgstr ""
+
+#: src/Frontend/Frontend.php:53
+msgid "Something went wrong. Please try again."
+msgstr ""
+
+#: src/PostTypes/Example.php:47
+msgid "Items"
+msgstr ""
+
+#: src/PostTypes/Example.php:48
+msgid "Item"
+msgstr ""
+
+#: src/PostTypes/Example.php:49
+msgid "Add new item"
+msgstr ""
+
+#: src/PostTypes/Example.php:50
+msgid "Edit item"
+msgstr ""
+
+#: src/PostTypes/Example.php:51
+msgid "All items"
+msgstr ""
+
+#: src/PostTypes/Example.php:52
+msgid "Search items"
+msgstr ""
+
+#: src/PostTypes/Example.php:53
+msgid "No items found."
+msgstr ""
+
+#: src/PostTypes/Example.php:69
+msgid "Item categories"
+msgstr ""
+
+#: src/PostTypes/Example.php:70
+msgid "Item category"
+msgstr ""
+
+#: src/PostTypes/Example.php:107
+msgid "Image"
+msgstr ""
+
+#: templates/items-list.php:20
+msgid "No items yet."
+msgstr ""
+
+#: templates/items-list.php:37
+msgid "Load more"
+msgstr ""
+
+#: blocks/example/edit.js:21
+msgid "Number of items"
+msgstr ""
+
+#: blocks/example/block.json
+msgctxt "block title"
+msgid "Latest items"
+msgstr ""
+
+#: blocks/example/block.json
+msgctxt "block description"
+msgid "Shows the latest items. Rendered in PHP (render.php), so it always shows current content."
+msgstr ""
+
+#: blocks/example/block.json
+msgctxt "block keyword"
+msgid "items"
+msgstr ""
+
+#: blocks/example/block.json
+msgctxt "block keyword"
+msgid "list"
 msgstr ""

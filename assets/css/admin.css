@@ -1,0 +1,15 @@
+/* wp-admin: the settings page and the Items screens. */
+.myplugin-settings .form-table td fieldset label {
+	margin-bottom: 0.25em;
+}
+
+.column-myplugin_thumbnail {
+	width: 60px;
+}
+
+.column-myplugin_thumbnail img {
+	border-radius: 2px;
+	height: 48px;
+	object-fit: cover;
+	width: 48px;
+}

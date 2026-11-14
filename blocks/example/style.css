@@ -1,0 +1,12 @@
+/* Loaded in the editor and on the front end wherever the block is used. */
+.wp-block-wordpress-plugin-boilerplate-example .myplugin-items__list--grid {
+	display: grid;
+	gap: 1.5rem;
+	grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+}
+
+.wp-block-wordpress-plugin-boilerplate-example .myplugin-item img {
+	display: block;
+	height: auto;
+	max-width: 100%;
+}

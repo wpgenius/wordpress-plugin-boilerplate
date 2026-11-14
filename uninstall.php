@@ -2,44 +2,59 @@
 /**
  * Runs when the plugin is deleted from the Plugins screen.
  *
- * The plugin itself is NOT loaded here, so do not rely on its classes or constants.
+ * Settings, items and the log table are deleted only when "Delete data on
+ * uninstall" is ticked on the settings page. Scheduled jobs are always removed.
  *
- * @package wordpress-plugin-boilerplate
+ * The plugin is NOT loaded here, so its classes and constants are not available;
+ * keep the names below in sync with src/.
+ *
+ * @package WPGenius\MyPlugin
  */
 
-if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
-	exit;
-}
+defined( 'WP_UNINSTALL_PLUGIN' ) || exit;
 
 /**
- * Remove plugin data for the current site, honouring the uninstall preferences.
+ * Remove the plugin's data from the current site.
+ *
+ * @return void
  */
 function myplugin_uninstall_site() {
 	global $wpdb;
 
-	if ( get_option( 'myplugin_delete_db' ) ) {
-		$wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}myplugin_table" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+	wp_clear_scheduled_hook( 'myplugin_daily_report' ); // Cron::REPORT_HOOK.
+
+	$settings = get_option( 'myplugin_settings', array() ); // Api::OPTION.
+	if ( empty( $settings['delete_data'] ) ) {
+		return;
 	}
 
-	if ( get_option( 'myplugin_delete_settings' ) ) {
-		$options = array(
-			'myplugin_event_per_page',
-			'myplugin_reminder_enabled',
-			'myplugin_reminder_interval',
-			'myplugin_delete_db',
-			'myplugin_delete_settings',
-		);
-		foreach ( $options as $option ) {
-			delete_option( $option );
-		}
+	// Items (PostTypes\Example::NAME) with their meta, terms and revisions.
+	$item_ids = get_posts(
+		array(
+			'post_type'   => 'myplugin_item',
+			'post_status' => 'any',
+			'numberposts' => -1,
+			'fields'      => 'ids',
+		)
+	);
+	foreach ( $item_ids as $item_id ) {
+		wp_delete_post( $item_id, true );
 	}
 
-	delete_option( 'myplugin_permalinks_flushed' );
-	wp_unschedule_hook( 'myplugin_event_reminder' ); // Clears every event for the hook, whatever its args.
+	$wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}myplugin_log" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Installer::log_table().
+
+	delete_option( 'myplugin_settings' );
+	delete_option( 'myplugin_db_version' ); // Installer::DB_VERSION_OPTION.
 }
 
 if ( is_multisite() ) {
-	foreach ( get_sites( array( 'fields' => 'ids', 'number' => 0 ) ) as $myplugin_site_id ) {
+	$myplugin_site_ids = get_sites(
+		array(
+			'fields' => 'ids',
+			'number' => 0,
+		)
+	);
+	foreach ( $myplugin_site_ids as $myplugin_site_id ) {
 		switch_to_blog( $myplugin_site_id );
 		myplugin_uninstall_site();
 		restore_current_blog();

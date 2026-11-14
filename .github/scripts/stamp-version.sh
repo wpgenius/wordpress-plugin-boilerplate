@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Writes a release into the plugin or theme files:
-#   - "Version:" in the main plugin file header (style.css for a theme)
+#   - "Version:" in the main plugin file header (style.css for a theme),
+#     and a *_VERSION constant there, if one is defined
 #   - "Stable tag:" in readme.txt, when it has one (themes do not)
 #   - a new "= X.Y.Z =" entry at the top of readme.txt's "== Changelog =="
 # Usage: stamp-version.sh <version> <changelog-file>
@@ -20,6 +21,9 @@ main_file=$(main_plugin_file)
 # Header Version: only the first match, only within the header block.
 VERSION="$version" perl -0pi -e 's/^([ \t\/*#@]*Version:[ \t]*)\S+/${1}$ENV{VERSION}/mi' "$main_file"
 [ "$(header_version "$main_file")" = "$version" ] || { echo "::error::could not set Version in $main_file" >&2; exit 1; }
+
+# Optional version constant, e.g. define( 'MYPLUGIN_VERSION', '1.2.3' );
+VERSION="$version" perl -pi -e "s/(define\(\s*'[A-Z0-9_]+_VERSION'\s*,\s*')[^']*(')/\${1}\$ENV{VERSION}\${2}/" "$main_file"
 
 if [ -f readme.txt ]; then
 	if grep -qiE '^Stable tag:' readme.txt; then

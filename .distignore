@@ -59,6 +59,11 @@ phpstan.neon.dist
 /tests
 phpunit.xml
 phpunit.xml.dist
+.phpunit.result.cache
+.phpunit.cache
+
+# Block sources: `npm run build` compiles them into build/, which ships
+/blocks
 
 # Build output
 /release

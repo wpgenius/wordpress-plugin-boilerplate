@@ -33,6 +33,8 @@ node_modules/
 .eslintcache
 .stylelintcache
 phpcs-report.xml
+.phpunit.result.cache
+.phpunit.cache/
 
 # --------------------------------------------------
 # Database / Local Development

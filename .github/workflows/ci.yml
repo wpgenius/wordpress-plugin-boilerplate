@@ -1,7 +1,8 @@
 name: CI
 
-# Checks every pull request (and pushes to main): PHP syntax on each supported
-# PHP version, WordPress Coding Standards, and JS/CSS lint.
+# Checks every pull request (and pushes to main): PHP syntax and unit tests on
+# each supported PHP version, WordPress Coding Standards, JS/CSS lint, and that
+# the committed block build in build/ matches the sources in blocks/.
 
 on:
   pull_request:
@@ -18,7 +19,7 @@ concurrency:
 
 jobs:
   php-lint:
-    name: PHP ${{ matrix.php }} syntax
+    name: PHP ${{ matrix.php }} syntax and tests
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -38,12 +39,11 @@ jobs:
 
       - run: composer lint
 
+      - run: composer test
+
   phpcs:
     name: Coding standards (PHPCS)
     runs-on: ubuntu-latest
-    # Report-only until the existing code is brought up to WordPress Coding
-    # Standards. Remove this line to make PHPCS block merges.
-    continue-on-error: true
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
@@ -59,7 +59,7 @@ jobs:
         run: vendor/bin/phpcs -q --report-full --report-checkstyle=./phpcs-report.xml || (cs2pr ./phpcs-report.xml && exit 1)
 
   js-css-lint:
-    name: JS and CSS lint
+    name: JS/CSS lint and block build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -72,3 +72,13 @@ jobs:
       - run: npm ci
 
       - run: npm run lint
+
+      - run: npm run build
+
+      - name: Check that build/ is committed and up to date
+        run: |
+          if [ -n "$(git status --porcelain -- build)" ]; then
+            git status --short -- build
+            echo "::error::build/ is out of date. Run 'npm run build' and commit build/."
+            exit 1
+          fi
