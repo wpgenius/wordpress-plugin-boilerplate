@@ -1,0 +1,31 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "wordpress-plugin-boilerplate/interactive",
+	"version": "1.0.0",
+	"title": "Items with live filter",
+	"category": "widgets",
+	"icon": "filter",
+	"description": "Lists the latest items with a search box that filters them as you type. Uses the Interactivity API: rendered in PHP, made interactive with data-wp-* directives.",
+	"keywords": [ "items", "filter", "search", "interactivity" ],
+	"textdomain": "wordpress-plugin-boilerplate",
+	"attributes": {
+		"count": {
+			"type": "number",
+			"default": 8
+		}
+	},
+	"supports": {
+		"html": false,
+		"interactivity": true,
+		"align": [ "wide", "full" ],
+		"spacing": {
+			"margin": true,
+			"padding": true
+		}
+	},
+	"editorScript": "file:./index.js",
+	"viewScriptModule": "file:./view.js",
+	"style": "file:./style-index.css",
+	"render": "file:./render.php"
+}

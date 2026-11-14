@@ -8,8 +8,8 @@
 		"node": "^20.19.0 || >=22.12.0"
 	},
 	"scripts": {
-		"build": "wp-scripts build --webpack-src-dir=blocks --output-path=build --webpack-copy-php",
-		"start": "wp-scripts start --webpack-src-dir=blocks --output-path=build --webpack-copy-php",
+		"build": "wp-scripts build --webpack-src-dir=blocks --output-path=build --webpack-copy-php --experimental-modules",
+		"start": "wp-scripts start --webpack-src-dir=blocks --output-path=build --webpack-copy-php --experimental-modules",
 		"lint": "npm run lint:js && npm run lint:css",
 		"lint:js": "wp-scripts lint-js assets/js blocks",
 		"lint:css": "wp-scripts lint-style \"assets/css/**/*.css\" \"blocks/**/*.css\"",
@@ -20,6 +20,7 @@
 		"@wordpress/blocks": "^16.2.0",
 		"@wordpress/components": "^42.0.0",
 		"@wordpress/i18n": "^6.30.0",
+		"@wordpress/interactivity": "^7.0.0",
 		"@wordpress/scripts": "^34.2.0",
 		"@wordpress/server-side-render": "^6.33.0"
 	}
