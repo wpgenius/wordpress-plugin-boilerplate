@@ -4,7 +4,7 @@ Tags: boilerplate, starter, settings, block, shortcode
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 2.0.5
+Stable tag: 2.0.6
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -49,6 +49,19 @@ Only if "Delete data on uninstall" is ticked in the settings.
 4. The Items with live filter block, filtering as you type.
 
 == Changelog ==
+
+= 2.0.6 =
+
+* Rename script writes the wrong main file name into PHPStan and test config (#59)
+* Require CI to pass before a PR can merge (#60)
+* Fail the release when GitHub label or issue lookups fail (#61)
+* Uninstall leaves trashed items, auto-drafts and item categories behind (#62)
+* Multisite: deactivate on every site and set up new sites (#63)
+* Item and category URLs use generic slugs that collide between plugins (#64)
+* Load more fails on cached pages because the public REST call sends a nonce (#65)
+* Shortcode and blocks accept more items per page than the REST route (#66)
+* Test on PHP 8.5 (#67)
+* README: say that rulesets on private repos need a paid GitHub plan (#68)
 
 = 2.0.5 =
 
