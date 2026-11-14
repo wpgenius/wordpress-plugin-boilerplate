@@ -6,6 +6,7 @@ namespaced plugin with working examples, plus the whole workflow around it
 Rename it with one command and start building.
 
 [![Latest release](https://img.shields.io/github/v/release/wpgenius/wordpress-plugin-boilerplate)](https://github.com/wpgenius/wordpress-plugin-boilerplate/releases/latest)
+[![Try it in your browser](https://img.shields.io/badge/WordPress_Playground-Try_it_in_your_browser-3858e9?logo=wordpress)](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/wpgenius/wordpress-plugin-boilerplate/main/.wordpress-org/blueprints/blueprint.json)
 [![CI](https://github.com/wpgenius/wordpress-plugin-boilerplate/actions/workflows/ci.yml/badge.svg)](https://github.com/wpgenius/wordpress-plugin-boilerplate/actions/workflows/ci.yml)
 [![License: GPL v3+](https://img.shields.io/badge/license-GPL--3.0--or--later-blue)](LICENSE)
 
@@ -43,6 +44,17 @@ works, following WordPress best practices (escaping, nonces, capabilities,
 i18n, dbDelta, block.json), and the release process most teams build by hand
 later. Everything is plain PHP and shell, readable in an afternoon, with no
 framework to learn.
+
+## Try it in your browser
+
+[**Open the demo in WordPress Playground**](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/wpgenius/wordpress-plugin-boilerplate/main/.wordpress-org/blueprints/blueprint.json):
+a full WordPress site that runs in your browser, with the latest release installed,
+sample items and a demo page. Nothing to install; you are logged in as admin, so
+you can open the settings page and the block editor too. The demo is described in
+[`.wordpress-org/blueprints/blueprint.json`](.wordpress-org/blueprints/blueprint.json),
+and WordPress.org uses the same file for the "Live Preview" button if you publish there.
+For your own plugin, the demo works once the repo is public and has a release
+(Playground downloads `releases/latest/download/<slug>.zip`).
 
 ## Start a new plugin
 
