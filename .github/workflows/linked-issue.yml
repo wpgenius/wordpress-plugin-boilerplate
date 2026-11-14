@@ -1,0 +1,45 @@
+name: Linked issue
+
+# Every change starts with an issue: a pull request must close at least one
+# issue in this repo ("Closes #12" in its description). The release changelog
+# is built from those issues. The "Protect main" ruleset makes this check
+# required; Dependabot PRs pass automatically and repo admins can bypass.
+
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize, ready_for_review]
+
+permissions:
+  pull-requests: read
+  issues: read
+
+jobs:
+  linked-issue:
+    name: Linked issue
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check that the PR closes an issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          AUTHOR: ${{ github.event.pull_request.user.login }}
+        run: |
+          set -euo pipefail
+          if [ "$AUTHOR" = "dependabot[bot]" ]; then
+            echo "Dependabot PR: no issue needed."
+            exit 0
+          fi
+          issues=$(gh api graphql -F owner="${GITHUB_REPOSITORY%/*}" -F name="${GITHUB_REPOSITORY#*/}" -F pr="$PR" -f query='
+            query($owner: String!, $name: String!, $pr: Int!) {
+              repository(owner: $owner, name: $name) {
+                pullRequest(number: $pr) {
+                  closingIssuesReferences(first: 50) { nodes { number title } }
+                }
+              }
+            }' --jq '.data.repository.pullRequest.closingIssuesReferences.nodes[] | "#\(.number) \(.title)"')
+          if [ -z "$issues" ]; then
+            echo "::error::This pull request does not close any issue. Create an issue for the change and add 'Closes #<number>' to the PR description (one line per issue)."
+            exit 1
+          fi
+          echo "Closes:"
+          echo "$issues"

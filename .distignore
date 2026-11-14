@@ -1,12 +1,28 @@
-# GitHub
-.github
+# Files and folders left out of the release zip and the deploys.
+# Patterns use rsync/.gitignore syntax; a leading "/" anchors to the repo root.
+# Anything NOT listed here is "deployable": changing it triggers a release.
 
-# IDE
+# GitHub, CI and repo setup
+/.github
+/bin
+/.wordpress-org
+
+# Git
+.git
+.gitignore
+.gitattributes
+.distignore
+
+# IDE / editors / AI assistants
 .vscode
+.vscodeignore
 .idea
+sftp.json
+/.claude
+CLAUDE.md
 
-# Docker
-.docker
+# Docker (local development)
+/.docker
 Dockerfile
 docker-compose.yml
 
@@ -14,51 +30,51 @@ docker-compose.yml
 .env
 .env.example
 
-# Git
-.gitignore
-.distignore
-
-# Testing
-tests
-phpunit.xml.dist
-
-# OS Files
-.DS_Store
-Thumbs.db
-
-# Logs
-*.log
-
-# Optional items added for future safety
-
-# Node 
-node_modules
+# Composer (dev tools only; the plugin does not need vendor/)
+/vendor
 composer.json
 composer.lock
+
+# Node / front-end tooling
+node_modules
 package.json
-.phpcs.cache
-.eslintcache
-.stylelintcache
-.nvmrc
 package-lock.json
-
-vendor/bin
-
-.editorconfig
+.nvmrc
 .eslintrc
+.eslintcache
 .prettierrc
 .stylelintrc
+.stylelintcache
+
+# Coding standards / static analysis
+.editorconfig
 phpcs.xml
 phpcs.xml.dist
+.phpcs.cache
+phpcs-report.xml
 phpstan.neon
 phpstan.neon.dist
 
-# Database Dumps
+# Testing
+/tests
+phpunit.xml
+phpunit.xml.dist
+
+# Build output
+/release
+*.zip
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs and database dumps
+*.log
 *.sql
 *.sqlite
 
-# Documentation only needed for github, not for distribution
+# Documentation only needed on GitHub (readme.txt ships)
+README.md
 CODE_OF_CONDUCT.md
 CONTRIBUTING.md
-README.md
 SECURITY.md

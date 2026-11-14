@@ -24,23 +24,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 define( 'MYPLUGIN_DIR_URL', plugin_dir_url( __FILE__ ) );
 define( 'MYPLUGIN_DIR_PATH', plugin_dir_path( __FILE__ ) );
 
-// Classes in includes/ are loaded by Composer's autoloader. Run `composer install`
-// in a development checkout; release zips already contain vendor/.
-if ( ! is_readable( MYPLUGIN_DIR_PATH . 'vendor/autoload.php' ) ) {
-	add_action( 'admin_notices', function () {
-		if ( ! current_user_can( 'activate_plugins' ) ) {
-			return;
-		}
-		printf(
-			'<div class="notice notice-error"><p>%s</p></div>',
-			esc_html__( 'Plugin boilerplate for WordPress is missing its vendor/ folder. Run "composer install" in the plugin folder, or install a release zip.', 'wordpress-plugin-boilerplate' )
-		);
-	} );
-	return;
-}
-require_once MYPLUGIN_DIR_PATH . 'vendor/autoload.php';
-
-// Files that register hooks directly (no class to autoload).
+// Plugin classes. Composer is only used for development tools, so the plugin
+// runs straight from a git clone or a release zip without `composer install`.
+require_once MYPLUGIN_DIR_PATH . 'includes/class-api.php';
+require_once MYPLUGIN_DIR_PATH . 'includes/class-database.php';
+require_once MYPLUGIN_DIR_PATH . 'includes/class-ajax.php';
+require_once MYPLUGIN_DIR_PATH . 'includes/class-admin.php';
+require_once MYPLUGIN_DIR_PATH . 'includes/class-settings.php';
+require_once MYPLUGIN_DIR_PATH . 'includes/class-actions.php';
+require_once MYPLUGIN_DIR_PATH . 'includes/shortcodes/shortcodes.php';
 require_once MYPLUGIN_DIR_PATH . 'includes/widgets/widgets.php';
 
 // Load translations: WP_LANG_DIR/plugins/ first, then this plugin's languages/ folder.

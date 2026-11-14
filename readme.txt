@@ -4,7 +4,7 @@ Tags: wordpress, plugin, custom
 Requires at least: 6.0
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 1.0.3
+Stable tag: 1.0.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -52,16 +52,6 @@ Yes. The plugin is built with extensibility in mind and follows WordPress best p
 3. Example output.
 
 == Changelog ==
-
-= 1.0.4 =
-
-* Added shortcode support for [plugin_shortcode] to render dynamic content.
-* Implemented a customizable widget with title and display options.
-* Added settings page under Settings > Plugin Name for configuring plugin behavior.
-* Improved data sanitization and nonces for secure form handling.
-* Added i18n support and provided a POT file for translations.
-* Updated readme and documentation; improved developer hooks and filters.
-* Fixed compatibility issues up to WordPress 6.8 and PHP 7.4.
 
 == Upgrade Notice ==
 
