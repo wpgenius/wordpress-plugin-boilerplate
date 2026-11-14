@@ -4,7 +4,7 @@ Tags: boilerplate, starter, settings, block, shortcode
 Requires at least: 6.1
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 2.0.0
+Stable tag: 2.0.1
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -40,6 +40,22 @@ Copy a file from the plugin's `templates/` folder to `wp-content/themes/<your-th
 Only if "Delete data on uninstall" is ticked in the settings.
 
 == Changelog ==
+
+= 2.0.1 =
+
+* Namespaced plugin structure with autoloader (#20)
+* Common Api base class with shared helpers (#21)
+* Settings page built from one array of fields (#22)
+* Admin area: menu, assets and View details from readme.txt (#23)
+* Front end: assets, example shortcode and overridable templates (#24)
+* Example AJAX handler (#25)
+* Example cron job (#26)
+* Example custom post type (#27)
+* Installer and uninstall cleanup (#28)
+* Example dynamic Gutenberg block (#29)
+* Unit tests with PHPUnit and Brain Monkey (#30)
+* License the boilerplate as GPL-3.0-or-later (#31)
+* Update README for the new structure (#32)
 
 = 2.0.0 =
 
