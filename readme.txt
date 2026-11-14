@@ -4,7 +4,7 @@ Tags: boilerplate, starter, settings, block, shortcode
 Requires at least: 6.1
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 2.0.1
+Stable tag: 2.0.2
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -40,6 +40,12 @@ Copy a file from the plugin's `templates/` folder to `wp-content/themes/<your-th
 Only if "Delete data on uninstall" is ticked in the settings.
 
 == Changelog ==
+
+= 2.0.2 =
+
+* Publish /repo-standard as a Claude Code plugin from this repo (#36)
+* README: bring an existing plugin or theme up to the standard (#37)
+* README: new plugins should start at version 1.0.0 (#38)
 
 = 2.0.1 =
 
