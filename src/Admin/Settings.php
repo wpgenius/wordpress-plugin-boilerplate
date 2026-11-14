@@ -75,7 +75,7 @@ class Settings extends Api {
 					'show_load_more' => array(
 						'type'        => 'checkbox',
 						'label'       => __( 'Load more button', 'wordpress-plugin-boilerplate' ),
-						'description' => __( 'Show a button that loads the next page without reloading (AJAX).', 'wordpress-plugin-boilerplate' ),
+						'description' => __( 'Show a button that loads the next page without reloading (REST API).', 'wordpress-plugin-boilerplate' ),
 						'default'     => 1,
 					),
 				),

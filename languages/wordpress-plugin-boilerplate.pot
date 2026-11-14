@@ -2,14 +2,14 @@
 # This file is distributed under the GPL-3.0-or-later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Plugin boilerplate for WordPress 2.0.2\n"
+"Project-Id-Version: Plugin boilerplate for WordPress 2.0.3\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/wordpress-plugin-boilerplate\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-14T11:22:01+00:00\n"
+"POT-Creation-Date: 2026-11-14T11:58:14+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: wordpress-plugin-boilerplate\n"
@@ -90,7 +90,7 @@ msgid "Load more button"
 msgstr ""
 
 #: src/Admin/Settings.php:78
-msgid "Show a button that loads the next page without reloading (AJAX)."
+msgid "Show a button that loads the next page without reloading (REST API)."
 msgstr ""
 
 #: src/Admin/Settings.php:84
@@ -152,19 +152,41 @@ msgstr ""
 msgid "When the plugin is deleted, also delete its settings, items and database table."
 msgstr ""
 
-#: src/Admin/Settings.php:438
+#: src/Admin/Settings.php:325
+msgid "Test the report email"
+msgstr ""
+
+#: src/Admin/Settings.php:328
+msgid "Send a test report to me"
+msgstr ""
+
+#: src/Admin/Settings.php:332
+msgid "Uses the saved settings: save your changes first."
+msgstr ""
+
+#: src/Admin/Settings.php:447
 msgid "You can use:"
 msgstr ""
 
 #: src/Ajax.php:46
-msgid "Your session has expired. Reload the page."
+msgid "You are not allowed to do this, or the page has expired. Reload it and try again."
 msgstr ""
 
-#: src/Frontend/Frontend.php:52
+#: src/Ajax.php:52
+msgid "The email could not be sent. Check that this site can send email."
+msgstr ""
+
+#. translators: %s: email address.
+#: src/Ajax.php:58
+#, php-format
+msgid "Test report sent to %s."
+msgstr ""
+
+#: src/Frontend/Frontend.php:54
 msgid "Loading…"
 msgstr ""
 
-#: src/Frontend/Frontend.php:53
+#: src/Frontend/Frontend.php:55
 msgid "Something went wrong. Please try again."
 msgstr ""
 
@@ -206,6 +228,18 @@ msgstr ""
 
 #: src/PostTypes/Example.php:107
 msgid "Image"
+msgstr ""
+
+#: src/Rest.php:66
+msgid "Page number."
+msgstr ""
+
+#: src/Rest.php:72
+msgid "Items per page."
+msgstr ""
+
+#: src/Rest.php:153
+msgid "The items rendered with templates/item.php."
 msgstr ""
 
 #: templates/items-list.php:20
