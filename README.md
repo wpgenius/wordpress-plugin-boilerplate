@@ -40,6 +40,11 @@ Rename it with one command and start building.
 - A local WordPress in Docker, and a rename script so the first five minutes
   are easy.
 
+**Using Claude Code?** The [wp-repo-standard](https://github.com/wpgenius/wp-repo-standard)
+plugin does the setup for you: `/wp-repo-standard:new` starts a plugin from this
+boilerplate, and `/wp-repo-standard:adopt` brings any existing plugin or theme repo
+up to the same workflow. See [With Claude Code](#with-claude-code-optional).
+
 ## Screenshots
 
 | Settings page built from one array | Block with its settings in the editor |
@@ -76,6 +81,11 @@ For your own plugin, the demo works once the repo is public and has a release
 You need `git`, `perl` (both preinstalled on macOS and Linux) and, for step 4,
 the [GitHub CLI](https://cli.github.com) signed in with `gh auth login`.
 The examples create a plugin called **Acme Events**; use your own names.
+
+> **Tip:** with Claude Code, `/wp-repo-standard:new` runs all of these steps for you,
+> including the GitHub repo and its settings. Install it once:
+> `/plugin marketplace add wpgenius/wp-repo-standard`, then
+> `/plugin install wp-repo-standard@wpgenius`.
 
 ### 1. Get the code
 
