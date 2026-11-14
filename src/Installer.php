@@ -1,18 +1,13 @@
 <?php
 /**
- * Activation, deactivation and upgrades.
+ * Activation, deactivation and multisite setup.
  *
- * - activate():   creates the database table, saves default settings,
- *                 schedules cron jobs and flushes rewrite rules.
- * - deactivate(): removes cron jobs and flushes rewrite rules (data is kept).
- * - Multisite:    a network activation or deactivation runs on every site; a
- *                 site added later is set up when the plugin is network active,
- *                 and the table is dropped when its site is deleted.
- * - Upgrades:     when DB_VERSION is raised, create_tables() runs again on the
- *                 next request; dbDelta() adds new columns and tables.
+ * - activate():   saves default settings and flushes rewrite rules.
+ * - deactivate(): flushes rewrite rules (data is kept).
+ * - Multisite:    a network activation or deactivation runs on every site, and
+ *                 a site added later is set up when the plugin is network active.
  *
  * Deleting data happens in uninstall.php, not here.
- * Example table: {prefix}myplugin_log. Delete the table code if you don't need one.
  *
  * @package WPGenius\MyPlugin
  */
@@ -21,11 +16,22 @@ namespace WPGenius\MyPlugin;
 
 defined( 'ABSPATH' ) || exit;
 
+// Example: table (start).
+// The example log table {prefix}myplugin_log shows how a plugin adds a table:
+// created on activation, upgraded when DB_VERSION is raised (create_tables()
+// runs again on the next request and dbDelta() adds the new columns), and
+// dropped when its site is deleted from a network.
+// Example: table (end).
+// Example: report (start).
+// The daily report (Cron.php) is scheduled on activation and removed on deactivation.
+// Example: report (end).
+
 /**
  * Installer.
  */
 class Installer extends Api {
 
+	// Example: table (start).
 	/**
 	 * Database schema version. Raise it when you change create_tables().
 	 */
@@ -36,13 +42,14 @@ class Installer extends Api {
 	 */
 	const DB_VERSION_OPTION = 'myplugin_db_version';
 
+	// Example: table (end).
 	/**
-	 * Run upgrades when the schema version changes (e.g. after a plugin update).
+	 * Register hooks.
 	 */
 	public function __construct() {
-		add_action( 'init', array( __CLASS__, 'maybe_upgrade' ), 5 );
 		add_action( 'wp_initialize_site', array( __CLASS__, 'new_site' ), 900 ); // After core created the site's tables.
-		add_filter( 'wpmu_drop_tables', array( __CLASS__, 'drop_site_tables' ), 10, 2 );
+		add_action( 'init', array( __CLASS__, 'maybe_upgrade' ), 5 ); // Example: table.
+		add_filter( 'wpmu_drop_tables', array( __CLASS__, 'drop_site_tables' ), 10, 2 ); // Example: table.
 	}
 
 	/**
@@ -111,6 +118,7 @@ class Installer extends Api {
 		restore_current_blog();
 	}
 
+	// Example: table (start).
 	/**
 	 * Multisite: drop the plugin's table when its site is deleted.
 	 *
@@ -124,13 +132,14 @@ class Installer extends Api {
 		return $tables;
 	}
 
+	// Example: table (end).
 	/**
 	 * Clean up one site (its data is kept).
 	 *
 	 * @return void
 	 */
 	private static function deactivate_site() {
-		Cron::unschedule();
+		Cron::unschedule(); // Example: report.
 		flush_rewrite_rules();
 	}
 
@@ -140,13 +149,14 @@ class Installer extends Api {
 	 * @return void
 	 */
 	private static function activate_site() {
-		self::create_tables();
 		add_option( self::OPTION, Admin\Settings::defaults() ); // Does nothing if settings exist.
-		Cron::schedule();
+		self::create_tables(); // Example: table.
+		Cron::schedule(); // Example: report.
 
 		PostTypes\PostTypes::register_all();
 		flush_rewrite_rules();
 	}
+	// Example: table (start).
 
 	/**
 	 * Create or update tables when DB_VERSION changed.
@@ -212,4 +222,5 @@ class Installer extends Api {
 			array( '%s', '%s' )
 		);
 	}
+	// Example: table (end).
 }

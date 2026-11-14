@@ -81,6 +81,7 @@ class UninstallTest extends \WP_UnitTestCase {
 	public function test_everything_is_deleted_when_the_user_asked() {
 		update_option( Api::OPTION, array_merge( Api::get_settings(), array( 'delete_data' => 1 ) ) );
 
+		// Example: table (start).
 		// The test suite turns tables into temporary ones, so "is the table
 		// gone?" can't be asked of the database. Watch for the DROP instead.
 		$dropped = false;
@@ -92,14 +93,16 @@ class UninstallTest extends \WP_UnitTestCase {
 		};
 		add_filter( 'query', $watch, 99 );
 
+		// Example: table (end).
 		$this->uninstall();
-
-		remove_filter( 'query', $watch, 99 );
 
 		$this->assertSame( array(), $this->items(), 'Items in every status, including trash and auto-drafts.' );
 		$this->assertSame( array(), get_terms( array( 'taxonomy' => Example::TAXONOMY, 'hide_empty' => false ) ) ); // phpcs:ignore WordPress.Arrays.ArrayDeclarationSpacing -- Short.
 		$this->assertFalse( get_option( Api::OPTION ) );
+		// Example: table (start).
+		remove_filter( 'query', $watch, 99 );
 		$this->assertFalse( get_option( Installer::DB_VERSION_OPTION ) );
 		$this->assertTrue( $dropped, 'The log table is dropped.' );
+		// Example: table (end).
 	}
 }

@@ -114,6 +114,13 @@ Your plugin:
 It renames every file, class, constant, function, option, hook, block and text
 domain, fills in the plugin header and resets the version to 1.0.0.
 
+**Want a smaller start?** The script asks whether to keep the three larger
+examples: the daily report email (cron and AJAX), the custom database table and
+the "View details" popup for private plugins. Answer `n`, or pass `--minimal`,
+and they are removed everywhere: classes, settings, scripts, uninstall and tests.
+The settings page, the items post type, the REST route, the shortcode and the
+blocks stay.
+
 You can also pass everything at once, e.g. for scripts:
 
 ```bash
@@ -217,8 +224,8 @@ Change the greeting, save, reload.
 **Next:** run `composer phpcs` to check the code style (`composer phpcbf` fixes
 small things, like the alignment of the new array entry), then ship it the way
 every change ships: issue, branch, pull request (see [How changes ship](#how-changes-ship)).
-When you no longer need an example (the items post type, the daily report),
-remove it; `src/Plugin.php` lists every part that is loaded.
+`src/Plugin.php` lists every part that is loaded; see
+[Plugin structure](#plugin-structure) for how to remove an example.
 
 ## Local development
 
@@ -399,8 +406,13 @@ who may call it, and blocks call it with `wp.apiFetch`. admin-ajax (`Ajax.php`)
 is fine for small one-off actions in wp-admin.
 
 **Add a part:** create the class in `src/`, register its hooks in the
-constructor, and add it to the list in `Plugin.php`. Delete the examples you
-don't need the same way.
+constructor, and add it to the list in `Plugin.php`.
+
+**Remove an example:** the three optional examples are marked in the code with
+`// Example: report`, `// Example: table` and `// Example: plugin-info`, on every
+line or block that belongs to them. `bin/rename.sh --minimal` removes all three
+when you start; later, search for a marker and delete what it marks (plus
+`Cron.php` and `Ajax.php` for the report, `PluginInfo.php` for plugin-info).
 
 ## Repo files
 

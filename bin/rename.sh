@@ -15,6 +15,9 @@
 #   --plugin-uri URL     Plugin website
 #   --contributors NAME  Your WordPress.org username(s), comma separated (readme.txt)
 #   --github OWNER/REPO  GitHub repository (for links in the README, templates and composer.json)
+#   --minimal            Leave out the larger examples: the daily report email (cron + AJAX),
+#                        the log table and the "View details" popup
+#   --full               Keep every example (the default when not asked)
 #   --yes                Don't ask for confirmation (for scripts)
 #
 # Run it once, from the plugin folder, right after cloning.
@@ -32,7 +35,7 @@ die() { printf 'Error: %s\n' "$*" >&2; exit 1; }
 command -v perl >/dev/null || die "perl is required (it comes with macOS and Linux)."
 
 # ---------------------------------------------------------------- arguments
-NAME="" VENDOR="" FUNC="" DESCRIPTION="" AUTHOR="" AUTHOR_URI="" PLUGIN_URI="" CONTRIBUTORS="" GITHUB="" YES=0
+NAME="" VENDOR="" FUNC="" DESCRIPTION="" AUTHOR="" AUTHOR_URI="" PLUGIN_URI="" CONTRIBUTORS="" GITHUB="" YES=0 MINIMAL=""
 while [ $# -gt 0 ]; do
 	case "$1" in
 		--vendor) VENDOR=${2:-}; shift 2 ;;
@@ -43,8 +46,10 @@ while [ $# -gt 0 ]; do
 		--plugin-uri) PLUGIN_URI=${2:-}; shift 2 ;;
 		--contributors) CONTRIBUTORS=${2:-}; shift 2 ;;
 		--github) GITHUB=${2:-}; shift 2 ;;
+		--minimal) MINIMAL=1; shift ;;
+		--full) MINIMAL=0; shift ;;
 		--yes|-y) YES=1; shift ;;
-		-h|--help) sed -n '2,20p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+		-h|--help) sed -n '2,23p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
 		-*) die "unknown option $1 (see bin/rename.sh --help)" ;;
 		*) [ -z "$NAME" ] || die "give the plugin name once, in quotes: bin/rename.sh \"Acme Events\""; NAME=$1; shift ;;
 	esac
@@ -82,6 +87,16 @@ fi
 [ -n "$CONTRIBUTORS" ] || ask CONTRIBUTORS "Your WordPress.org username (optional; for readme.txt)" ""
 [ -n "$VENDOR" ]      || ask VENDOR "PHP namespace vendor, one word" "$(studly "${AUTHOR:-WPGenius}")"
 [ -n "$GITHUB" ]      || ask GITHUB "GitHub repository, owner/name (optional)" ""
+if [ -z "$MINIMAL" ]; then
+	MINIMAL=0
+	if [ "$interactive" -eq 1 ]; then
+		echo
+		echo "The boilerplate has three larger examples: a daily report email (cron and"
+		echo "AJAX), a custom database table, and a \"View details\" popup for private plugins."
+		read -r -p "Keep them? Choose n for a smaller plugin without them. [Y/n] " keep
+		case "$keep" in n|N|no|NO) MINIMAL=1 ;; esac
+	fi
+fi
 
 SLUG=$(slugify "$NAME")
 PREFIX=$(studly "$NAME")
@@ -120,6 +135,7 @@ Your plugin:
   Author          ${AUTHOR:-(unchanged)}${AUTHOR_URI:+  <$AUTHOR_URI>}
   Contributors    ${CONTRIBUTORS:-(not set: readme.txt gets a placeholder to replace)}
   GitHub          ${GITHUB:-(not set)}
+  Examples        $( [ "$MINIMAL" -eq 1 ] && echo "minimal: without the daily report, the log table and the View details popup" || echo "all kept" )
   Version         reset to 1.0.0, changelog emptied
 
 EOF
@@ -132,6 +148,39 @@ fi
 # ---------------------------------------------------------------- rename
 export NAME SLUG VENDOR PREFIX CONST FUNC KEBAB GITHUB OLD_SLUG OLD_NAME OLD_REPO
 export DESCRIPTION AUTHOR AUTHOR_URI PLUGIN_URI CONTRIBUTORS
+
+# ---------------------------------------------------------------- minimal
+# The optional examples are marked in the code:
+#   // Example: <name> (start).  ...  // Example: <name> (end).   a block of lines
+#   some code; // Example: <name>.                                one line
+# --minimal deletes those lines and the files that belong only to an example.
+if [ "$MINIMAL" -eq 1 ]; then
+	rm -f src/Cron.php src/Ajax.php tests/Integration/AjaxTest.php   # report
+	rm -f src/Admin/PluginInfo.php                                   # plugin-info
+	marked=$(grep -rlI --exclude-dir={.git,vendor,node_modules,build} --exclude={README.md,rename.sh} \
+		-E '// Example: (report|table|plugin-info)( \((start|end)\))?\.' . || true)
+	if [ -n "$marked" ]; then
+		printf '%s\n' "$marked" | while IFS= read -r f; do
+			for example in report table plugin-info; do
+				EXAMPLE=$example perl -0pi -e '
+					my $n = quotemeta $ENV{EXAMPLE};
+					s{^[^\n]*//[ \t]*Example: $n \(start\)\.[^\n]*\n.*?^[^\n]*//[ \t]*Example: $n \(end\)\.[^\n]*\n}{}msg;
+					s{^[^\n]*//[ \t]*Example: $n\.[ \t]*(?:\?>)?[ \t]*\n}{}mg;
+				' "$f"
+			done
+		done
+	fi
+	# Texts that describe the removed examples.
+	perl -pi -e 's/ \* Three examples are optional.*\n//; s/^ \* (appear: report|Installer\.php\) and plugin-info|removes all three; to remove one).*\n//' src/Plugin.php
+	perl -pi -e 's/front end, AJAX, cron, custom post type/front end, custom post type/ if /^ \* Description:/' myplugin.php
+	if [ -f readme.txt ]; then
+		perl -pi -e '
+			$_ = "" if /^\* \*\*(Daily report|"Send a test report")\*\*/;
+			s/^(\* Templates your theme can override), and a "View details" popup for private plugins\./$1./;
+			s/, a block, AJAX and a scheduled email\./ and a block./;
+		' readme.txt
+	fi
+fi
 
 files=$(grep -rlI --exclude-dir={.git,vendor,node_modules} \
 	--exclude={README.md,composer.lock,package-lock.json,rename.sh,'.*cache'} \
@@ -209,6 +258,11 @@ if [ -z "$CONTRIBUTORS" ] && [ -f readme.txt ]; then
 	echo
 	echo "Note: set 'Contributors:' in readme.txt to your WordPress.org username"
 	echo "      (it now holds a placeholder), or delete the line for a private plugin."
+fi
+if [ "$MINIMAL" -eq 1 ]; then
+	echo
+	echo "Minimal: the daily report, the log table and the View details popup were removed."
+	echo "         Run 'composer install && composer make-pot' to refresh the translation template."
 fi
 if [ -d vendor ] || [ -d node_modules ]; then
 	echo
