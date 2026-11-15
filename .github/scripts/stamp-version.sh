@@ -3,7 +3,10 @@
 #   - "Version:" in the main plugin file header (style.css for a theme),
 #     and a *_VERSION constant there, if one is defined
 #   - "Stable tag:" in readme.txt, when it has one (themes do not)
-#   - a new "= X.Y.Z =" entry at the top of readme.txt's "== Changelog =="
+#   - a new "= X.Y.Z =" entry at the top of readme.txt's "== Changelog ==",
+#     unless an entry for that version is already there (for example the first
+#     release of an existing plugin whose readme already describes it, or a
+#     re-run): then that entry is kept as written
 # Usage: stamp-version.sh <version> <changelog-file>
 set -euo pipefail
 
@@ -34,7 +37,9 @@ if [ -f readme.txt ]; then
 		echo "::notice::readme.txt has no 'Stable tag:' line; skipped"
 	fi
 
-	if grep -q '^== Changelog ==' readme.txt; then
+	if grep -q '^== Changelog ==' readme.txt && grep -qE "^=[[:space:]]*v?${version//./\\.}[[:space:]]*=[[:space:]]*\$" readme.txt; then
+		echo "::notice::readme.txt already has a changelog entry for $version; kept as is"
+	elif grep -q '^== Changelog ==' readme.txt; then
 		entry=$(printf '= %s =\n\n%s' "$version" "$(cat "$notes")")
 		ENTRY="$entry" perl -0pi -e 's/^(== Changelog ==[ \t]*\n)\n*/$1\n$ENV{ENTRY}\n\n/m' readme.txt
 	else
