@@ -12,14 +12,16 @@
 #            (more than CI's Plugin Check job runs).
 #   runtime  A clean site with WP_DEBUG on the lowest PHP ("Requires PHP") and
 #            the newest: activation output, block and shortcode rendering,
-#            settings page, no plugin assets or notices on the Dashboard, no
-#            <prefix> cron events after deactivation, no <prefix> options,
-#            transients or tables after uninstall, and every PHP notice.
+#            settings page, the plugin's assets on its own screen, no plugin
+#            assets or notices on the Dashboard, no <prefix> cron events after
+#            deactivation, no <prefix> options, transients or tables after
+#            uninstall, and every PHP notice.
 #
 # Results go to release/presubmit/ (ignored by git and left out of the zip).
 #
 # Your plugin: edit only bin/presubmit/plugin.php (what to render, the settings
-# page, what to turn on before deactivating or uninstalling, the name prefix).
+# page and own admin screen, starting admin parts that load only under
+# is_admin(), what to turn on before deactivating or uninstalling, the prefix).
 # activate.php, plugin-check.php, runtime.php and this script are the same in
 # every plugin. These files are test scripts, not plugin code: they are not in
 # the zip and PHPCS skips them.

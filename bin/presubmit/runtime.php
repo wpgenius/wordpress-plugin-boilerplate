@@ -31,6 +31,7 @@ function presubmit_runtime() {
 			'render'            => array(),
 			'check_render'      => null,
 			'settings_page'     => null,
+			'own_screen'        => '',
 			'before_deactivate' => null,
 			'before_uninstall'  => null,
 			'after_uninstall'   => null,
@@ -52,8 +53,27 @@ function presubmit_runtime() {
 	);
 	wp_set_current_user( 1 );
 
-	$lines[] = 'active=' . ( is_plugin_active( PRESUBMIT_PLUGIN ) ? 'yes' : 'no' ) . " prefix=$prefix";
-	$call( $config['setup'] );
+	$lines[] = trim(
+		'active=' . ( is_plugin_active( PRESUBMIT_PLUGIN ) ? 'yes' : 'no' ) . " prefix=$prefix"
+		. ' ' . $call( $config['setup'] )
+	);
+
+	// Script and style handles newly queued since $queued whose files are in this plugin.
+	$plugin_handles = static function ( array $queued ) {
+		$handles = array();
+		foreach ( array( wp_scripts(), wp_styles() ) as $deps ) {
+			foreach ( array_diff( $deps->queue, $queued ) as $handle ) {
+				$src = isset( $deps->registered[ $handle ] ) ? (string) $deps->registered[ $handle ]->src : '';
+				if ( false !== strpos( $src, '/plugins/' . dirname( PRESUBMIT_PLUGIN ) . '/' ) ) {
+					$handles[] = $handle;
+				}
+			}
+		}
+		return array_values( array_unique( $handles ) );
+	};
+	$queue = static function () {
+		return array_merge( wp_scripts()->queue, wp_styles()->queue );
+	};
 
 	// Front end: every block and shortcode plugin.php lists.
 	$html = '';
@@ -76,19 +96,28 @@ function presubmit_runtime() {
 		$lines[] = 'settings_page_bytes=' . strlen( (string) ob_get_clean() );
 	}
 
+	// The plugin's own admin screen: its assets should load there. They are
+	// dequeued again so the Dashboard check below starts clean.
+	$own = $config['own_screen'];
+	if ( $own ) {
+		$own_id   = is_array( $own ) ? $own['id'] : $own;
+		$own_hook = is_array( $own ) && isset( $own['hook'] ) ? $own['hook'] : $own_id;
+		set_current_screen( $own_id );
+		$queued = $queue();
+		do_action( 'admin_enqueue_scripts', $own_hook );
+		$assets = $plugin_handles( $queued );
+		foreach ( $assets as $handle ) {
+			wp_dequeue_script( $handle );
+			wp_dequeue_style( $handle );
+		}
+		$lines[] = "own_screen=$own_id own_screen_assets=" . ( $assets ? implode( ',', $assets ) : 'none' );
+	}
+
 	// The Dashboard is not the plugin's screen: no plugin assets, no notices.
 	set_current_screen( 'dashboard' );
-	$queued = array_merge( wp_scripts()->queue, wp_styles()->queue ); // Blocks above queued their styles.
+	$queued = $queue(); // Blocks above queued their styles.
 	do_action( 'admin_enqueue_scripts', 'index.php' );
-	$assets = array();
-	foreach ( array( wp_scripts(), wp_styles() ) as $deps ) {
-		foreach ( array_diff( $deps->queue, $queued ) as $handle ) {
-			$src = isset( $deps->registered[ $handle ] ) ? (string) $deps->registered[ $handle ]->src : '';
-			if ( false !== strpos( $src, '/plugins/' . dirname( PRESUBMIT_PLUGIN ) . '/' ) ) {
-				$assets[] = $handle;
-			}
-		}
-	}
+	$assets = $plugin_handles( $queued );
 	ob_start();
 	do_action( 'admin_notices' );
 	$lines[] = 'dashboard_plugin_assets=' . ( $assets ? implode( ',', $assets ) : 'none' )
