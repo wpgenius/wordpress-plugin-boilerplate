@@ -1,118 +1,146 @@
 <?php
 /**
- * Pre-submission check, step 2: on a clean site with WP_DEBUG, render the
- * blocks and the shortcode, open the settings page, look at an admin screen
- * that isn't the plugin's, deactivate, uninstall, and count PHP notices.
- * Appends to /sp/runtime-<php>.txt.
+ * Pre-submission check, step 2, the same for every plugin: on a clean site with
+ * WP_DEBUG it renders what plugin.php lists, opens the settings page, looks at
+ * the Dashboard (not the plugin's screen), deactivates, uninstalls, and counts
+ * PHP notices. Appends key=value lines to /sp/runtime-<php>.txt.
  *
- * Calls hooks directly instead of firing init again: a second init floods the
- * log with notices that a real request never shows.
+ * Don't edit this file for your plugin; edit plugin.php next to it.
+ *
+ * Hooks are called directly instead of firing init again: a second init floods
+ * the log with notices that a real request never shows.
  *
  * Run by bin/presubmit/run.sh inside WordPress Playground; not part of the plugin.
- *
- * @package WPGenius\MyPlugin
  */
-
-// phpcs:disable WordPress.WP.AlternativeFunctions, WordPress.PHP.DevelopmentFunctions, WordPress.WP.GlobalVariablesOverride, WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- A test script, not plugin code.
 
 require_once '/wordpress/wp-load.php';
 require_once ABSPATH . 'wp-admin/includes/admin.php';
 
-$myplugin_lines  = array();
-$myplugin_errors = array();
-set_error_handler( // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_set_error_handler -- Counts notices.
-	static function ( $number, $message, $file, $line ) use ( &$myplugin_errors ) {
-		$myplugin_errors[] = ( false !== strpos( $file, '/wp-content/plugins/' ) ? 'PLUGIN ' : 'CORE   ' ) . "$number $message @ $file:$line";
-		return false;
-	}
-);
-wp_set_current_user( 1 );
+/**
+ * Runs the check and returns its lines.
+ *
+ * @return string[]
+ */
+function presubmit_runtime() {
+	global $wpdb;
 
-$myplugin_lines[] = 'active=' . ( is_plugin_active( PRESUBMIT_PLUGIN ) ? 'yes' : 'no' )
-	. ' settings_option=' . ( is_array( get_option( 'myplugin_settings' ) ) ? 'yes' : 'no' );
-
-// Two items, so the lists have something to show.
-foreach ( array( 'First item', 'Second item & more' ) as $myplugin_title ) {
-	wp_insert_post(
+	$config = array_merge(
 		array(
-			'post_type'    => 'myplugin_item',
-			'post_status'  => 'publish',
-			'post_title'   => $myplugin_title,
-			'post_excerpt' => 'Excerpt of ' . $myplugin_title,
-		)
+			'prefix'            => str_replace( '-', '_', dirname( PRESUBMIT_PLUGIN ) ),
+			'setup'             => null,
+			'render'            => array(),
+			'check_render'      => null,
+			'settings_page'     => null,
+			'before_deactivate' => null,
+			'before_uninstall'  => null,
+			'after_uninstall'   => null,
+		),
+		(array) require __DIR__ . '/plugin.php'
 	);
-}
+	$prefix = $config['prefix'];
+	$call   = static function ( $callback, ...$args ) {
+		return is_callable( $callback ) ? (string) call_user_func_array( $callback, $args ) : '';
+	};
 
-// Front end: both blocks and the shortcode.
-$myplugin_html = do_blocks( '<!-- wp:wordpress-plugin-boilerplate/example {"count":2} /-->' )
-	. do_blocks( '<!-- wp:wordpress-plugin-boilerplate/interactive {"count":2} /-->' )
-	. do_shortcode( '[myplugin_items per_page="1"]' );
-file_put_contents( '/sp/render-' . PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION . '.html', $myplugin_html );
-$myplugin_lines[] = 'render_bytes=' . strlen( $myplugin_html )
-	. ' items=' . substr_count( $myplugin_html, 'class="myplugin-item"' )
-	. ' wp_directives=' . preg_match_all( '/ data-wp-[a-z-]+=/', $myplugin_html )
-	. ' search_input=' . ( false !== strpos( $myplugin_html, 'type="search"' ) ? 'yes' : 'no' )
-	. ' inline_style_or_script=' . ( preg_match( '/<(style|script)\b/i', $myplugin_html ) ? 'yes' : 'no' );
+	$lines  = array();
+	$errors = array();
+	set_error_handler(
+		static function ( $number, $message, $file, $line ) use ( &$errors ) {
+			$errors[] = ( false !== strpos( $file, '/wp-content/plugins/' ) ? 'PLUGIN ' : 'CORE   ' ) . "$number $message @ $file:$line";
+			return false;
+		}
+	);
+	wp_set_current_user( 1 );
 
-// Admin: the settings page, then the dashboard (not the plugin's screen).
-// Outside a real admin request core's get_admin_page_title() may raise a
-// deprecation on PHP 8.1+ (counted as core_notices, not the plugin's).
-$GLOBALS['plugin_page'] = 'myplugin_settings'; // Admin\Settings::PAGE.
-$GLOBALS['title']       = 'Settings';
+	$lines[] = 'active=' . ( is_plugin_active( PRESUBMIT_PLUGIN ) ? 'yes' : 'no' ) . " prefix=$prefix";
+	$call( $config['setup'] );
 
-$myplugin_settings = new WPGenius\MyPlugin\Admin\Settings();
-$myplugin_settings->register_settings();
-ob_start();
-$myplugin_settings->render_page();
-$myplugin_lines[] = 'settings_page_bytes=' . strlen( (string) ob_get_clean() );
+	// Front end: every block and shortcode plugin.php lists.
+	$html = '';
+	foreach ( (array) $config['render'] as $markup ) {
+		$html .= do_shortcode( do_blocks( $markup ) );
+	}
+	file_put_contents( '/sp/render-' . PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION . '.html', $html );
+	$lines[] = trim(
+		'render_bytes=' . strlen( $html )
+		. ' inline_style_or_script=' . ( preg_match( '/<(style|script)\b/i', $html ) ? 'yes' : 'no' )
+		. ' ' . $call( $config['check_render'], $html )
+	);
 
-set_current_screen( 'dashboard' );
-$myplugin_queued = array_merge( wp_scripts()->queue, wp_styles()->queue ); // The blocks above queued their styles.
-do_action( 'admin_enqueue_scripts', 'index.php' );
-$myplugin_assets = array();
-foreach ( array( wp_scripts(), wp_styles() ) as $myplugin_deps ) {
-	foreach ( array_diff( $myplugin_deps->queue, $myplugin_queued ) as $myplugin_handle ) {
-		$myplugin_src = isset( $myplugin_deps->registered[ $myplugin_handle ] ) ? (string) $myplugin_deps->registered[ $myplugin_handle ]->src : '';
-		if ( false !== strpos( $myplugin_src, '/plugins/' . dirname( PRESUBMIT_PLUGIN ) . '/' ) ) {
-			$myplugin_assets[] = $myplugin_handle;
+	// Admin: the settings page. Outside a real admin request core's
+	// get_admin_page_title() may raise a deprecation (counted as core_notices).
+	if ( is_callable( $config['settings_page'] ) ) {
+		$GLOBALS['title'] = 'Settings';
+		ob_start();
+		$call( $config['settings_page'] );
+		$lines[] = 'settings_page_bytes=' . strlen( (string) ob_get_clean() );
+	}
+
+	// The Dashboard is not the plugin's screen: no plugin assets, no notices.
+	set_current_screen( 'dashboard' );
+	$queued = array_merge( wp_scripts()->queue, wp_styles()->queue ); // Blocks above queued their styles.
+	do_action( 'admin_enqueue_scripts', 'index.php' );
+	$assets = array();
+	foreach ( array( wp_scripts(), wp_styles() ) as $deps ) {
+		foreach ( array_diff( $deps->queue, $queued ) as $handle ) {
+			$src = isset( $deps->registered[ $handle ] ) ? (string) $deps->registered[ $handle ]->src : '';
+			if ( false !== strpos( $src, '/plugins/' . dirname( PRESUBMIT_PLUGIN ) . '/' ) ) {
+				$assets[] = $handle;
+			}
 		}
 	}
+	ob_start();
+	do_action( 'admin_notices' );
+	$lines[] = 'dashboard_plugin_assets=' . ( $assets ? implode( ',', $assets ) : 'none' )
+		. ' dashboard_notice_bytes=' . strlen( (string) ob_get_clean() );
+
+	// Deactivation removes every cron event whose hook starts with the prefix.
+	$prefixed_cron = static function () use ( $prefix ) {
+		$hooks = array();
+		foreach ( (array) _get_cron_array() as $events ) {
+			foreach ( array_keys( (array) $events ) as $hook ) {
+				if ( 0 === strpos( $hook, $prefix ) ) {
+					$hooks[] = $hook;
+				}
+			}
+		}
+		return array_unique( $hooks );
+	};
+	$call( $config['before_deactivate'] );
+	$before = $prefixed_cron();
+	deactivate_plugins( PRESUBMIT_PLUGIN );
+	$after   = $prefixed_cron();
+	$lines[] = 'cron_before_deactivate=' . ( $before ? implode( ',', $before ) : 'none' )
+		. ' cron_after_deactivate=' . ( $after ? implode( ',', $after ) : 'none' );
+
+	// Uninstall (plugin.php ticks "delete data") leaves no prefixed options,
+	// transients or tables.
+	$call( $config['before_uninstall'] );
+	ob_start();
+	uninstall_plugin( PRESUBMIT_PLUGIN );
+	$output = (string) ob_get_clean();
+	$like   = $wpdb->esc_like( $prefix ) . '%';
+	$left   = $wpdb->get_col(
+		$wpdb->prepare(
+			"SELECT option_name FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s OR option_name LIKE %s OR option_name LIKE %s",
+			$like,
+			'_transient_' . $like,
+			'_transient_timeout_' . $like,
+			'_site_transient_' . $like
+		)
+	);
+	$tables  = $wpdb->get_col( $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $wpdb->prefix . $prefix ) . '%' ) );
+	$lines[] = trim(
+		'uninstall_output_bytes=' . strlen( $output )
+		. ' options_left=' . ( $left ? implode( ',', $left ) : 'none' )
+		. ' tables_left=' . ( $tables ? implode( ',', $tables ) : 'none' )
+		. ' ' . $call( $config['after_uninstall'] )
+	);
+
+	restore_error_handler();
+	$plugin_notices = count( preg_grep( '/^PLUGIN /', $errors ) );
+	$lines[]        = 'plugin_notices=' . $plugin_notices . ' core_notices=' . ( count( $errors ) - $plugin_notices );
+	return array_merge( $lines, $errors );
 }
-ob_start();
-do_action( 'admin_notices' );
-$myplugin_lines[] = 'dashboard_plugin_assets=' . ( $myplugin_assets ? implode( ',', $myplugin_assets ) : 'none' )
-	. ' dashboard_notice_bytes=' . strlen( (string) ob_get_clean() );
 
-// Deactivate with the daily report on: its cron event must go.
-$myplugin_options                   = (array) get_option( 'myplugin_settings', array() );
-$myplugin_options['report_enabled'] = 1;
-update_option( 'myplugin_settings', $myplugin_options );
-$myplugin_cron_before = wp_next_scheduled( 'myplugin_daily_report' ) ? 'yes' : 'no';
-deactivate_plugins( PRESUBMIT_PLUGIN );
-$myplugin_lines[] = 'cron_before_deactivate=' . $myplugin_cron_before
-	. ' cron_after_deactivate=' . ( wp_next_scheduled( 'myplugin_daily_report' ) ? 'yes' : 'no' );
-
-// Uninstall with "Delete data on uninstall" ticked.
-$myplugin_options['delete_data'] = 1;
-update_option( 'myplugin_settings', $myplugin_options );
-ob_start();
-uninstall_plugin( PRESUBMIT_PLUGIN );
-$myplugin_uninstall_output = (string) ob_get_clean();
-global $wpdb;
-$myplugin_items_left = get_posts(
-	array(
-		'post_type'   => 'myplugin_item',
-		'post_status' => 'any',
-		'numberposts' => -1,
-		'fields'      => 'ids',
-	)
-);
-$myplugin_lines[]    = 'uninstall_output_bytes=' . strlen( $myplugin_uninstall_output )
-	. ' option_left=' . ( $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$wpdb->options} WHERE option_name = %s", 'myplugin_settings' ) ) ? 'yes' : 'no' ) // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- get_option() would return the registered default.
-	. ' items_left=' . count( $myplugin_items_left )
-	. ' table_left=' . ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->prefix . 'myplugin_log' ) ) ? 'yes' : 'no' ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Checks the table is gone.
-
-$myplugin_plugin_notices = count( preg_grep( '/^PLUGIN /', $myplugin_errors ) );
-$myplugin_lines[]        = 'plugin_notices=' . $myplugin_plugin_notices . ' core_notices=' . ( count( $myplugin_errors ) - $myplugin_plugin_notices );
-$myplugin_lines          = array_merge( $myplugin_lines, $myplugin_errors );
-file_put_contents( '/sp/runtime-' . PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION . '.txt', implode( "\n", $myplugin_lines ) . "\n", FILE_APPEND );
+file_put_contents( '/sp/runtime-' . PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION . '.txt', implode( "\n", presubmit_runtime() ) . "\n", FILE_APPEND );

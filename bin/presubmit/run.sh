@@ -12,11 +12,17 @@
 #            (more than CI's Plugin Check job runs).
 #   runtime  A clean site with WP_DEBUG on the lowest PHP ("Requires PHP") and
 #            the newest: activation output, block and shortcode rendering,
-#            settings page, admin assets and notices outside the plugin's
-#            screens, cron removed on deactivation, uninstall cleanup, and
-#            every PHP notice.
+#            settings page, no plugin assets or notices on the Dashboard, no
+#            <prefix> cron events after deactivation, no <prefix> options,
+#            transients or tables after uninstall, and every PHP notice.
 #
 # Results go to release/presubmit/ (ignored by git and left out of the zip).
+#
+# Your plugin: edit only bin/presubmit/plugin.php (what to render, the settings
+# page, what to turn on before deactivating or uninstalling, the name prefix).
+# activate.php, plugin-check.php, runtime.php and this script are the same in
+# every plugin. These files are test scripts, not plugin code: they are not in
+# the zip and PHPCS skips them.
 set -euo pipefail
 
 cd "$(dirname "${BASH_SOURCE[0]}")/../.."

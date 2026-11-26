@@ -9,6 +9,8 @@
 	<exclude-pattern>/build/*</exclude-pattern>
 	<!-- Claude Code worktrees: copies of this repo, not part of it. -->
 	<exclude-pattern>/.claude/*</exclude-pattern>
+	<!-- Pre-submission test scripts run in WordPress Playground, not plugin code. -->
+	<exclude-pattern>/bin/presubmit/*</exclude-pattern>
 
 	<arg name="extensions" value="php"/>
 	<arg name="colors"/>
