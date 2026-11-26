@@ -26,7 +26,7 @@ if ( ! $query->have_posts() ) {
 		<?php
 		while ( $query->have_posts() ) {
 			$query->the_post();
-			echo Api::render_template( 'item.php', array( 'post' => get_post() ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped in the template.
+			echo wp_kses( Api::render_template( 'item.php', array( 'post' => get_post() ) ), Api::allowed_html() );
 		}
 		wp_reset_postdata();
 		?>

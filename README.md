@@ -278,8 +278,17 @@ composer install
 | `npm ci` | Install the JS tools |
 | `npm run build` / `npm start` | Build the blocks into `build/` (once / watch) |
 | `npm run lint` | JS and CSS lint |
+| `bin/presubmit/run.sh` | Pre-submission checks in WordPress Playground (no Docker): Plugin Check with experimental checks, and a `WP_DEBUG` run on the lowest and newest PHP. See [Submitting to WordPress.org](#submitting-to-wordpressorg) |
 
-Commit `build/` after changing a block; CI fails if it is out of date.
+Commit `build/` after changing a block; CI fails if it is out of date. `npm run build`
+also adds the `ABSPATH` guard to the generated `build/*/*.asset.php` files
+(`bin/asset-guard.js`).
+
+**Claude Code skills.** [`.claude/skills/`](.claude/skills/) holds two skills from
+[WordPress/agent-skills](https://github.com/WordPress/agent-skills), which Claude Code
+loads in this repo: plugin development (hooks, lifecycle, Settings API, security) and
+the WordPress.org directory guidelines (GPL, naming, Plugin Check). A monthly workflow
+opens a pull request when they change upstream. They are not part of the plugin zip.
 
 ## How changes ship
 
@@ -304,11 +313,48 @@ issue  →  branch  →  pull request (Closes #N)  →  squash merge to main  �
      release. Docs, CI and config changes don't release;
   2. bumps the version: patch by default, or minor/major when the PR has the
      `release:minor` / `release:major` label;
-  3. writes the changelog (one line per closed issue) and the new version into
-     `readme.txt` and the plugin header, and commits that to `main`;
+  3. writes the changelog (one line per closed issue, using the issue title) and
+     the new version into `readme.txt` and the plugin header, and commits that to
+     `main`. Issue titles are what users read, so write them for users and never
+     name trademarks such as "Gutenberg" (say "block editor"). Label dev-only
+     issues (CI, tooling, tests) `changelog:skip` to leave them out;
   4. tags the commit and publishes a GitHub release with the plugin zip
      (`releases/latest/download/<slug>.zip`).
 - **Deploys are off by default.** See below.
+
+## Submitting to WordPress.org
+
+Before you submit (and before big releases):
+
+1. Run `bin/rename.sh` (with `--minimal`, or delete `src/Admin/PluginInfo.php`: the
+   "View details" popup is for private plugins). Plugin Check's warnings about the
+   word "plugin" in the name and the `myplugin_` prefix come from the boilerplate's
+   own names and go away.
+2. In `readme.txt`: your WordPress.org username in `Contributors`, a short
+   description that matches the plugin header `Description`, `Tested up to` = the
+   latest WordPress, and the **External services** section: every outside service
+   the plugin calls, when, what it sends, with links to its terms and privacy policy
+   (or "does not connect to any external service").
+3. List bundled third-party code with its licence in `THIRD-PARTY-NOTICES.txt`
+   (minified builds drop licence banners).
+4. Run the checks on the plugin as it ships:
+
+   ```bash
+   bin/presubmit/run.sh
+   ```
+
+   Plugin Check (static and experimental checks), then a clean site with `WP_DEBUG`
+   on the lowest and newest PHP: no output on activation, blocks and shortcode render,
+   no plugin assets or notices on other admin screens, cron removed on deactivation,
+   nothing left after uninstall, no PHP notices. Results are in `release/presubmit/`.
+   Ask Claude Code to review the plugin against the directory guidelines too (the
+   `wp-plugin-directory-guidelines` skill).
+
+The code already follows what reviewers check most: output escaped late
+(`wp_kses()` with `Api::allowed_html()`, no `phpcs:ignore` on output), nonces and
+capability checks on every action, assets and notices only on the plugin's screens,
+inline CSS through `wp_add_inline_style()`, no `load_plugin_textdomain()`, and the
+`ABSPATH` guard in every PHP file.
 
 ## Deploys
 
@@ -389,7 +435,7 @@ uninstall.php             cleanup when the plugin is deleted
 src/
 ├── autoload.php          WPGenius\MyPlugin\Admin\Settings → src/Admin/Settings.php
 ├── Plugin.php            starts every part below (admin parts only in wp-admin)
-├── Api.php               shared helpers: get_setting(), verify_request(),
+├── Api.php               shared helpers: get_setting(), verify_request(), allowed_html(),
 │                         render_template(), send_email() with {placeholders}, asset_url()
 ├── Installer.php         activation / deactivation, database table, upgrades
 ├── Rest.php              REST routes: GET /wp-json/myplugin/v1/items ("Load more")
@@ -443,6 +489,9 @@ when you start; later, search for a marker and delete what it marks (plus
 | `.github/` | CI, release, deploy, linked-issue check, Dependabot |
 | `bin/rename.sh` | Turns the boilerplate into your plugin (names, namespace, version) |
 | `bin/setup-github.sh` | One-time GitHub settings for a new repo |
+| `bin/presubmit/` | Pre-submission checks for WordPress.org (Plugin Check, `WP_DEBUG` runs) |
+| `THIRD-PARTY-NOTICES.txt` | Licences of bundled third-party code (ships with the plugin) |
+| `.claude/skills/` | WordPress skills for Claude Code (from WordPress/agent-skills; not shipped) |
 | `CONTRIBUTING.md`, `SECURITY.md`, `.github/ISSUE_TEMPLATE/` | How to contribute and report security issues |
 | `docker-compose.yml`, `.env.example` | Local WordPress + MariaDB + phpMyAdmin |
 | `composer.json`, `phpcs.xml.dist`, `phpstan.neon.dist`, `phpunit.xml.dist` | PHP dev tools: coding standards, static analysis, tests |

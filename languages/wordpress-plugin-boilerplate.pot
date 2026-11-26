@@ -2,22 +2,22 @@
 # This file is distributed under the GPL-3.0-or-later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Plugin boilerplate for WordPress 2.0.4\n"
+"Project-Id-Version: Plugin boilerplate for WordPress 2.0.8\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/wordpress-plugin-boilerplate\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-14T12:41:56+00:00\n"
+"POT-Creation-Date: 2026-11-26T13:48:57+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: wordpress-plugin-boilerplate\n"
 
 #. Plugin Name of the plugin
 #: myplugin.php:3
-#: src/Admin/Settings.php:175
-#: src/Admin/Settings.php:176
+#: src/Admin/Settings.php:177
+#: src/Admin/Settings.php:178
 msgid "Plugin boilerplate for WordPress"
 msgstr ""
 
@@ -28,7 +28,7 @@ msgstr ""
 
 #. Description of the plugin
 #: myplugin.php:5
-msgid "A starter kit for WordPress plugins: settings page, admin, front end, AJAX, cron, custom post type and a block."
+msgid "A starter plugin with a settings page, a custom post type, a shortcode, a block, AJAX and a scheduled email."
 msgstr ""
 
 #. Author of the plugin
@@ -41,34 +41,34 @@ msgstr ""
 msgid "https://wpgenius.in"
 msgstr ""
 
-#: blocks/interactive/render.php:47
+#: build/interactive/render.php:53
 #: templates/items-list.php:20
 msgid "No items yet."
 msgstr ""
 
-#: blocks/interactive/render.php:50
+#: build/interactive/render.php:56
 msgid "Filter items"
 msgstr ""
 
-#: blocks/interactive/render.php:51
+#: build/interactive/render.php:57
 msgid "Type to filter…"
 msgstr ""
 
-#: blocks/interactive/render.php:66
+#: build/interactive/render.php:72
 msgid "No items match."
 msgstr ""
 
 #: src/Admin/Admin.php:56
-#: blocks/example/edit.js:18
-#: blocks/interactive/edit.js:17
+#: build/example/index.js:1
+#: build/interactive/index.js:1
 msgid "Settings"
 msgstr ""
 
-#: src/Admin/PluginInfo.php:76
+#: src/Admin/PluginInfo.php:77
 msgid "More information about this plugin"
 msgstr ""
 
-#: src/Admin/PluginInfo.php:77
+#: src/Admin/PluginInfo.php:78
 msgid "View details"
 msgstr ""
 
@@ -85,17 +85,17 @@ msgid "Items per page"
 msgstr ""
 
 #: src/Admin/Settings.php:63
-#: blocks/example/edit.js:33
+#: build/example/index.js:1
 msgid "Layout"
 msgstr ""
 
 #: src/Admin/Settings.php:66
-#: blocks/example/edit.js:37
+#: build/example/index.js:1
 msgid "Grid"
 msgstr ""
 
 #: src/Admin/Settings.php:67
-#: blocks/example/edit.js:44
+#: build/example/index.js:1
 msgid "List"
 msgstr ""
 
@@ -111,78 +111,78 @@ msgstr ""
 msgid "Show a button that loads the next page without reloading (REST API)."
 msgstr ""
 
-#: src/Admin/Settings.php:84
+#: src/Admin/Settings.php:85
 msgid "Daily report email"
 msgstr ""
 
-#: src/Admin/Settings.php:85
+#: src/Admin/Settings.php:86
 msgid "A scheduled (cron) email with the number of items published in the last day."
 msgstr ""
 
-#: src/Admin/Settings.php:89
+#: src/Admin/Settings.php:90
 msgid "Send the report"
 msgstr ""
 
-#: src/Admin/Settings.php:94
+#: src/Admin/Settings.php:95
 msgid "Send at"
 msgstr ""
 
-#: src/Admin/Settings.php:95
+#: src/Admin/Settings.php:96
 msgid "Site time, 24-hour."
 msgstr ""
 
-#: src/Admin/Settings.php:100
+#: src/Admin/Settings.php:101
 msgid "Send to"
 msgstr ""
 
-#: src/Admin/Settings.php:101
+#: src/Admin/Settings.php:102
 msgid "Leave empty to use the site admin email."
 msgstr ""
 
-#: src/Admin/Settings.php:106
+#: src/Admin/Settings.php:107
 msgid "Subject"
 msgstr ""
 
-#: src/Admin/Settings.php:107
+#: src/Admin/Settings.php:108
 msgid "{site_name}: {count} new items"
 msgstr ""
 
-#: src/Admin/Settings.php:112
+#: src/Admin/Settings.php:113
 msgid "Message"
 msgstr ""
 
-#: src/Admin/Settings.php:113
+#: src/Admin/Settings.php:114
 msgid ""
 "Hello,\n"
 "\n"
 "{count} items were published on {site_name} since {date}."
 msgstr ""
 
-#: src/Admin/Settings.php:119
+#: src/Admin/Settings.php:121
 msgid "Advanced"
 msgstr ""
 
-#: src/Admin/Settings.php:123
+#: src/Admin/Settings.php:125
 msgid "Delete data on uninstall"
 msgstr ""
 
-#: src/Admin/Settings.php:124
+#: src/Admin/Settings.php:126
 msgid "When the plugin is deleted, also delete its settings, items and database table."
 msgstr ""
 
-#: src/Admin/Settings.php:325
+#: src/Admin/Settings.php:328
 msgid "Test the report email"
 msgstr ""
 
-#: src/Admin/Settings.php:328
+#: src/Admin/Settings.php:331
 msgid "Send a test report to me"
 msgstr ""
 
-#: src/Admin/Settings.php:332
+#: src/Admin/Settings.php:335
 msgid "Uses the saved settings: save your changes first."
 msgstr ""
 
-#: src/Admin/Settings.php:447
+#: src/Admin/Settings.php:451
 msgid "You can use:"
 msgstr ""
 
@@ -200,51 +200,51 @@ msgstr ""
 msgid "Test report sent to %s."
 msgstr ""
 
-#: src/Frontend/Frontend.php:54
+#: src/Frontend/Frontend.php:56
 msgid "Loading…"
 msgstr ""
 
-#: src/Frontend/Frontend.php:55
+#: src/Frontend/Frontend.php:57
 msgid "Something went wrong. Please try again."
 msgstr ""
 
-#: src/PostTypes/Example.php:47
+#: src/PostTypes/Example.php:52
 msgid "Items"
 msgstr ""
 
-#: src/PostTypes/Example.php:48
+#: src/PostTypes/Example.php:53
 msgid "Item"
 msgstr ""
 
-#: src/PostTypes/Example.php:49
+#: src/PostTypes/Example.php:54
 msgid "Add new item"
 msgstr ""
 
-#: src/PostTypes/Example.php:50
+#: src/PostTypes/Example.php:55
 msgid "Edit item"
 msgstr ""
 
-#: src/PostTypes/Example.php:51
+#: src/PostTypes/Example.php:56
 msgid "All items"
 msgstr ""
 
-#: src/PostTypes/Example.php:52
+#: src/PostTypes/Example.php:57
 msgid "Search items"
 msgstr ""
 
-#: src/PostTypes/Example.php:53
+#: src/PostTypes/Example.php:58
 msgid "No items found."
 msgstr ""
 
-#: src/PostTypes/Example.php:69
+#: src/PostTypes/Example.php:74
 msgid "Item categories"
 msgstr ""
 
-#: src/PostTypes/Example.php:70
+#: src/PostTypes/Example.php:75
 msgid "Item category"
 msgstr ""
 
-#: src/PostTypes/Example.php:107
+#: src/PostTypes/Example.php:122
 msgid "Image"
 msgstr ""
 
@@ -264,53 +264,53 @@ msgstr ""
 msgid "Load more"
 msgstr ""
 
-#: blocks/example/edit.js:21
-#: blocks/interactive/edit.js:20
+#: build/example/index.js:1
+#: build/interactive/index.js:1
 msgid "Number of items"
 msgstr ""
 
-#: blocks/example/block.json
+#: build/example/block.json
 msgctxt "block title"
 msgid "Latest items"
 msgstr ""
 
-#: blocks/example/block.json
+#: build/example/block.json
 msgctxt "block description"
 msgid "Shows the latest items. Rendered in PHP (render.php), so it always shows current content."
 msgstr ""
 
-#: blocks/example/block.json
-#: blocks/interactive/block.json
+#: build/example/block.json
+#: build/interactive/block.json
 msgctxt "block keyword"
 msgid "items"
 msgstr ""
 
-#: blocks/example/block.json
+#: build/example/block.json
 msgctxt "block keyword"
 msgid "list"
 msgstr ""
 
-#: blocks/interactive/block.json
+#: build/interactive/block.json
 msgctxt "block title"
 msgid "Items with live filter"
 msgstr ""
 
-#: blocks/interactive/block.json
+#: build/interactive/block.json
 msgctxt "block description"
 msgid "Lists the latest items with a search box that filters them as you type. Uses the Interactivity API: rendered in PHP, made interactive with data-wp-* directives."
 msgstr ""
 
-#: blocks/interactive/block.json
+#: build/interactive/block.json
 msgctxt "block keyword"
 msgid "filter"
 msgstr ""
 
-#: blocks/interactive/block.json
+#: build/interactive/block.json
 msgctxt "block keyword"
 msgid "search"
 msgstr ""
 
-#: blocks/interactive/block.json
+#: build/interactive/block.json
 msgctxt "block keyword"
 msgid "interactivity"
 msgstr ""

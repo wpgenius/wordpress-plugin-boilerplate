@@ -133,7 +133,7 @@ class Example extends Api {
 	public function render_column( $column, $post_id ) {
 		if ( 'myplugin_thumbnail' === $column ) {
 			$image = get_the_post_thumbnail( $post_id, array( 48, 48 ) );
-			echo $image ? $image : '&mdash;'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Core markup.
+			echo $image ? wp_kses( $image, self::allowed_html() ) : '&mdash;';
 		}
 	}
 }

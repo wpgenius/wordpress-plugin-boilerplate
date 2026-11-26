@@ -1,0 +1,86 @@
+name: Agent skills sync
+
+# Keeps the WordPress skills in .claude/skills/ in step with
+# WordPress/agent-skills (trunk). Once a month (or when run by hand) it copies
+# the two skill folders and the upstream LICENSE; if anything changed it opens
+# an issue (labelled changelog:skip) and a pull request that closes it.
+#
+# Pull requests opened with the workflow token don't start other workflows, so
+# CI and the linked-issue check stay pending: close and reopen the PR (or push
+# a commit to it) to run them. Needs "Allow GitHub Actions to create and
+# approve pull requests" (Settings → Actions → General).
+
+on:
+  schedule:
+    - cron: '17 4 1 * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: agent-skills-sync
+  cancel-in-progress: false
+
+env:
+  UPSTREAM: https://github.com/WordPress/agent-skills.git
+  SKILLS: wp-plugin-development wp-plugin-directory-guidelines
+  BRANCH: agent-skills-sync
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Copy the skills from upstream
+        id: copy
+        run: |
+          set -euo pipefail
+          if [ -n "$(gh pr list --head "$BRANCH" --state open --json number --jq '.[].number')" ]; then
+            echo "A sync pull request is already open; merge or close it first."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          up="$RUNNER_TEMP/agent-skills"
+          git clone --quiet --depth 1 --branch trunk "$UPSTREAM" "$up"
+          sha=$(git -C "$up" rev-parse HEAD)
+          mkdir -p .claude/skills
+          for skill in $SKILLS; do
+            rsync -a --delete "$up/skills/$skill/" ".claude/skills/$skill/"
+          done
+          cp "$up/LICENSE" .claude/skills/LICENSE
+          if [ -z "$(git status --porcelain -- .claude/skills)" ]; then
+            echo "The skills match upstream $sha; nothing to do."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          sed -i "s/^Synced from upstream commit: .*/Synced from upstream commit: \`$sha\`/" .claude/skills/README.md
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          git status --short -- .claude/skills
+
+      - name: Open an issue and a pull request
+        if: steps.copy.outputs.changed == 'true'
+        env:
+          SHA: ${{ steps.copy.outputs.sha }}
+        run: |
+          set -euo pipefail
+          stat=$(git diff --stat -- .claude/skills)
+          issue=$(gh issue create --label changelog:skip \
+            --title "Update the WordPress agent skills from upstream" \
+            --body "WordPress/agent-skills changed one of the skills in \`.claude/skills/\` (upstream commit $SHA)." \
+            | sed 's#.*/##')
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git switch -c "$BRANCH"
+          git add .claude/skills
+          git commit --quiet -m "Update the WordPress agent skills from upstream ($SHA)"
+          git push --force --quiet origin "$BRANCH"
+          gh pr create --head "$BRANCH" \
+            --title "Update the WordPress agent skills from upstream" \
+            --body "$(printf 'Closes #%s\n\nCopied from WordPress/agent-skills trunk at %s.\n\n```\n%s\n```\n\nCI does not start on pull requests opened by this workflow: close and reopen this PR to run the checks.' "$issue" "$SHA" "$stat")"

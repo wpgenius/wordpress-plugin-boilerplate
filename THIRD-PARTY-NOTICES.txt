@@ -1,0 +1,26 @@
+Third-party notices
+===================
+
+Minified JavaScript and CSS lose the licence banners of the code bundled into
+them. This file keeps those notices: it ships with the plugin and is linked
+from readme.txt (Frequently Asked Questions).
+
+What build/ bundles
+-------------------
+
+Nothing from third parties. The blocks in build/ only import WordPress
+packages (@wordpress/*) and React's JSX runtime, which WordPress itself
+provides; the build references them and does not include their code.
+
+When you add an npm package whose code ends up in build/ (or any library you
+copy into the plugin), add an entry below and keep it up to date:
+
+    Package:   name@version
+    Used in:   build/<block>/index.js
+    Source:    https://...
+    License:   MIT (GPL-compatible)
+
+    <full licence text, including the copyright line>
+
+Check that every licence is GPL-compatible before bundling it:
+https://www.gnu.org/licenses/license-list.html#GPLCompatibleLicenses

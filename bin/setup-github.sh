@@ -10,7 +10,8 @@
 #
 # What it sets:
 #   - merges: squash only; commit message = PR title + PR body; delete branch on merge
-#   - labels: release:minor, release:major (bump the automatic version)
+#   - labels: release:minor, release:major (bump the automatic version),
+#     changelog:skip (leave a dev-only issue out of the changelog)
 #   - private vulnerability reporting (the "Report a vulnerability" button SECURITY.md points to)
 #   - variable DEPLOY_ENABLED=false (only if not set yet), environment "production"
 #   - variable REQUIRE_LINKED_ISSUE: whether every PR must close an issue. On by
@@ -61,6 +62,8 @@ gh label create release:minor --repo "$repo" --force --color 1d76db \
 	--description "Release as a minor version (new feature)" >/dev/null
 gh label create release:major --repo "$repo" --force --color b60205 \
 	--description "Release as a major version (breaking change)" >/dev/null
+gh label create changelog:skip --repo "$repo" --force --color ededed \
+	--description "Leave this issue out of the release changelog (dev-only changes)" >/dev/null
 
 echo "- deploy switch"
 if gh variable get DEPLOY_ENABLED --repo "$repo" >/dev/null 2>&1; then

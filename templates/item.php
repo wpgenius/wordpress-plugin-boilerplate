@@ -9,12 +9,14 @@
  * @var WP_Post $post Item.
  */
 
+use WPGenius\MyPlugin\Api;
+
 defined( 'ABSPATH' ) || exit;
 ?>
 <article class="myplugin-item">
 	<?php if ( has_post_thumbnail( $post ) ) : ?>
 		<a class="myplugin-item__image" href="<?php echo esc_url( get_permalink( $post ) ); ?>">
-			<?php echo get_the_post_thumbnail( $post, 'medium_large' ); ?>
+			<?php echo wp_kses( get_the_post_thumbnail( $post, 'medium_large' ), Api::allowed_html() ); ?>
 		</a>
 	<?php endif; ?>
 	<h3 class="myplugin-item__title">

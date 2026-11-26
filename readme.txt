@@ -41,6 +41,20 @@ Copy a file from the plugin's `templates/` folder to `wp-content/themes/<your-th
 
 Only if "Delete data on uninstall" is ticked in the settings.
 
+= Where is the source code of the block scripts? =
+
+The JavaScript in `build/` is compiled. Its source is in the `blocks/` folder of the [GitHub repository](https://github.com/wpgenius/wordpress-plugin-boilerplate); `npm install && npm run build` compiles it again.
+
+= Which third-party code does the plugin include? =
+
+See `THIRD-PARTY-NOTICES.txt` in the plugin folder: it lists any bundled libraries with their licences.
+
+== External services ==
+
+This plugin does not connect to any external service.
+
+(If your plugin does, replace the line above with one entry per service: what it is and what the plugin uses it for, which data is sent and when, and links to the service's terms of use and privacy policy.)
+
 == Screenshots ==
 
 1. The demo page: the shortcode with a Load more button that reads a REST API route.
@@ -120,7 +134,7 @@ Only if "Delete data on uninstall" is ticked in the settings.
 * Example cron job (#26)
 * Example custom post type (#27)
 * Installer and uninstall cleanup (#28)
-* Example dynamic Gutenberg block (#29)
+* Example dynamic block (#29)
 * Unit tests with PHPUnit and Brain Monkey (#30)
 * License the boilerplate as GPL-3.0-or-later (#31)
 * Update README for the new structure (#32)

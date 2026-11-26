@@ -59,7 +59,11 @@ final class Plugin {
 	 * Create every part. Each part registers its own hooks in its constructor.
 	 */
 	private function __construct() {
-		add_action( 'init', array( $this, 'load_textdomain' ) );
+		// No load_plugin_textdomain(): WordPress loads translations by itself (from
+		// translate.wordpress.org into wp-content/languages/plugins/), and Plugin Check
+		// flags the call for WordPress.org plugins. Block scripts get theirs from the
+		// "textdomain" in block.json. A private plugin that ships its own .mo files in
+		// languages/ can call load_plugin_textdomain() on init again.
 
 		// Everywhere: front end, admin, AJAX, REST, cron.
 		$parts = array(
@@ -93,14 +97,5 @@ final class Plugin {
 	 */
 	public function get( $class_name ) {
 		return isset( $this->parts[ $class_name ] ) ? $this->parts[ $class_name ] : null;
-	}
-
-	/**
-	 * Load translations: WP_LANG_DIR/plugins/ first, then this plugin's languages/ folder.
-	 *
-	 * @return void
-	 */
-	public function load_textdomain() {
-		load_plugin_textdomain( 'wordpress-plugin-boilerplate', false, dirname( plugin_basename( MYPLUGIN_FILE ) ) . '/languages' );
 	}
 }

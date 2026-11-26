@@ -154,7 +154,7 @@ jobs:
           fi
           check() {
             test -f acme-events.php
-            if grep -rIn --exclude-dir={.git,vendor,node_modules} --exclude={README.md,rename.sh,composer.lock,package-lock.json} -ie myplugin .; then
+            if grep -rIn --exclude-dir={.git,.claude,vendor,node_modules} --exclude={README.md,rename.sh,composer.lock,package-lock.json} -ie myplugin .; then
               echo "::error::bin/rename.sh left the names above behind."
               exit 1
             fi
@@ -174,7 +174,7 @@ jobs:
           echo "::group::Minimal"
           cd "$RUNNER_TEMP/minimal"
           bin/rename.sh "Acme Events" --vendor Acme --author "Acme Inc" --minimal --yes
-          if grep -rIn --exclude-dir={.git,.github,vendor,node_modules,build,languages} --exclude={README.md,rename.sh,phpcs.xml.dist} \
+          if grep -rIn --exclude-dir={.git,.claude,.github,vendor,node_modules,build,languages} --exclude={README.md,rename.sh,phpcs.xml.dist} \
             -e 'Example: ' -e 'Cron::' -e 'Ajax::' -e 'PluginInfo' -e 'DB_VERSION' .; then
             echo "::error::--minimal left parts of the removed examples behind (lines above)."
             exit 1
