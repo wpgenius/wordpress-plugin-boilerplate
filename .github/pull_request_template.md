@@ -16,5 +16,7 @@ Will merging this make a release? Only if the plugin zip changes, that is, a
 file .distignore does not exclude (PHP, assets, build/, readme.txt...). Docs,
 tests, CI and config changes make no release. The version goes up by a patch;
 add the label release:minor or release:major for more. Don't edit the version
-or the changelog by hand.
+or the changelog by hand: it lists the titles of the issues this PR closes
+(user-facing wording, no trademarks such as "Gutenberg"); label dev-only issues
+changelog:skip to leave them out.
 -->

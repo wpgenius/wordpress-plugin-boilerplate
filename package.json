@@ -9,6 +9,7 @@
 	},
 	"scripts": {
 		"build": "wp-scripts build --webpack-src-dir=blocks --output-path=build --webpack-copy-php --experimental-modules",
+		"postbuild": "node bin/asset-guard.js",
 		"start": "wp-scripts start --webpack-src-dir=blocks --output-path=build --webpack-copy-php --experimental-modules",
 		"lint": "npm run lint:js && npm run lint:css",
 		"lint:js": "wp-scripts lint-js assets/js blocks",

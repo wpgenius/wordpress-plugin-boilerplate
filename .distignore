@@ -82,7 +82,8 @@ Thumbs.db
 *.sqlite
 
 # Documentation only needed on GitHub (readme.txt ships)
-README.md
-CODE_OF_CONDUCT.md
-CONTRIBUTING.md
-SECURITY.md
+# Anchored, so bundled libraries keep their README and licence files.
+/README.md
+/CODE_OF_CONDUCT.md
+/CONTRIBUTING.md
+/SECURITY.md

@@ -15,7 +15,9 @@
 #   .distignore does not exclude).
 # - Bump: patch, or minor/major when a released PR has the label
 #   release:minor / release:major (the highest wins).
-# - Changelog: the titles of the issues closed by the released PRs; a commit
+# - Changelog: the titles of the issues closed by the released PRs, so issue
+#   titles are user-facing (and never name trademarks such as "Gutenberg").
+#   Issues labelled changelog:skip (dev-only work) are left out. A commit
 #   without a PR or linked issue contributes its subject line instead.
 # - No previous release: version = the plugin header Version (or 1.0.0),
 #   changelog "Initial release."
@@ -89,6 +91,7 @@ for sha in $(git rev-list --reverse --no-merges "$last"..HEAD); do
 	pr=$(gh api "repos/$GITHUB_REPOSITORY/commits/$sha/pulls" --jq '.[0].number // empty') \
 		|| api_failed "the pull request of commit ${sha:0:7}"
 	lines=""
+	pr_has_issues=0
 	if [ -n "$pr" ]; then
 		labels=$(gh api "repos/$GITHUB_REPOSITORY/issues/$pr/labels" --jq '.[].name') \
 			|| api_failed "the labels of PR #$pr"
@@ -100,24 +103,34 @@ for sha in $(git rev-list --reverse --no-merges "$last"..HEAD); do
 			query($owner: String!, $name: String!, $pr: Int!) {
 				repository(owner: $owner, name: $name) {
 					pullRequest(number: $pr) {
-						closingIssuesReferences(first: 50) { nodes { number title } }
+						closingIssuesReferences(first: 50) { nodes { number title labels(first: 30) { nodes { name } } } }
 					}
 				}
-			}' --jq '.data.repository.pullRequest.closingIssuesReferences.nodes[] | "\(.number)\t\(.title)"') \
+			}' --jq '.data.repository.pullRequest.closingIssuesReferences.nodes[] | "\(.number)\t\(if any(.labels.nodes[]; .name == "changelog:skip") then "skip" else "keep" end)\t\(.title)"') \
 			|| api_failed "the issues closed by PR #$pr"
-		while IFS=$'\t' read -r num title; do
+		while IFS=$'\t' read -r num keep title; do
 			[ -n "$num" ] || continue
+			pr_has_issues=1
 			case "$seen_issues" in *" $num "*) continue ;; esac
 			seen_issues+="$num "
+			if [ "$keep" = skip ]; then
+				echo "         #$num left out of the changelog (changelog:skip): $title"
+				continue
+			fi
 			lines+="* $title (#$num)"$'\n'
 		done <<<"$issues"
 	fi
-	if [ -z "$lines" ]; then
+	if [ -z "$lines" ] && [ "$pr_has_issues" -eq 0 ]; then
 		# Squash commits end with " (#PR)"; keep the subject as written.
 		lines="* $subject"$'\n'
 	fi
 	printf '%s' "$lines" >> "$CHANGELOG_FILE"
 done
+
+if [ "$deployable_commits" -gt 0 ] && [ ! -s "$CHANGELOG_FILE" ]; then
+	# Every issue behind the change was labelled changelog:skip.
+	printf '* Maintenance release.\n' > "$CHANGELOG_FILE"
+fi
 
 if [ "$deployable_commits" -eq 0 ]; then
 	# The zip changed only through .distignore (a file now ships or no longer does).

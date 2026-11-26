@@ -70,3 +70,9 @@ dw_php_codehinting.config
 .vscodeignore
 .idea/
 sftp.json
+
+# --------------------------------------------------
+# Claude Code (the shared skills in .claude/skills/ are committed)
+# --------------------------------------------------
+.claude/settings.local.json
+.claude/worktrees/

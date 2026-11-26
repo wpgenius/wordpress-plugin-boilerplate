@@ -1,7 +1,8 @@
 name: Linked issue
 
 # Every change starts with an issue: a pull request must close at least one
-# issue in this repo ("Closes #12" in its description). The release changelog
+# issue in this repo ("Closes #12" in its description; Fixes/Resolves work too,
+# also for pull requests into a branch other than main). The release changelog
 # is built from those issues. The "Protect main" ruleset makes this check
 # required; Dependabot PRs pass automatically and repo admins can bypass.
 #
@@ -27,6 +28,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           PR: ${{ github.event.pull_request.number }}
           AUTHOR: ${{ github.event.pull_request.user.login }}
+          BODY: ${{ github.event.pull_request.body }}
           REQUIRED: ${{ vars.REQUIRE_LINKED_ISSUE }}
         run: |
           set -euo pipefail
@@ -46,6 +48,20 @@ jobs:
                 }
               }
             }' --jq '.data.repository.pullRequest.closingIssuesReferences.nodes[] | "#\(.number) \(.title)"')
+          # GitHub links issues only for PRs into the default branch, so also
+          # read "Closes #N" / "Fixes #N" / "Resolves #N" from the description.
+          refs=$(printf '%s\n' "${BODY:-}" \
+            | grep -oiE '(^|[^[:alnum:]_])(close[sd]?|fix(e[sd])?|resolve[sd]?):?[[:space:]]+#[0-9]+' \
+            | grep -oE '[0-9]+$' | sort -un || true)
+          for num in $refs; do
+            case $'\n'"$issues"$'\n' in *$'\n'"#$num "*) continue ;; esac
+            # Only open or closed issues of this repo count, not pull requests.
+            line=$(gh api "repos/$GITHUB_REPOSITORY/issues/$num" \
+              --jq 'if .pull_request then empty else "#\(.number) \(.title)" end' 2>/dev/null || true)
+            if [ -n "$line" ]; then
+              issues=$(printf '%s\n%s' "$issues" "$line" | sed '/^$/d')
+            fi
+          done
           if [ -z "$issues" ]; then
             echo "::error::This pull request does not close any issue. Create an issue for the change and add 'Closes #<number>' to the PR description (one line per issue)."
             exit 1

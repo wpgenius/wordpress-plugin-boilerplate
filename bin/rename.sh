@@ -157,7 +157,7 @@ export DESCRIPTION AUTHOR AUTHOR_URI PLUGIN_URI CONTRIBUTORS
 if [ "$MINIMAL" -eq 1 ]; then
 	rm -f src/Cron.php src/Ajax.php tests/Integration/AjaxTest.php   # report
 	rm -f src/Admin/PluginInfo.php                                   # plugin-info
-	marked=$(grep -rlI --exclude-dir={.git,vendor,node_modules,build} --exclude={README.md,rename.sh} \
+	marked=$(grep -rlI --exclude-dir={.git,.claude,vendor,node_modules,build} --exclude={.git,README.md,rename.sh} \
 		-E '// Example: (report|table|plugin-info)( \((start|end)\))?\.' . || true)
 	if [ -n "$marked" ]; then
 		printf '%s\n' "$marked" | while IFS= read -r f; do
@@ -172,7 +172,7 @@ if [ "$MINIMAL" -eq 1 ]; then
 	fi
 	# Texts that describe the removed examples.
 	perl -pi -e 's/ \* Three examples are optional.*\n//; s/^ \* (appear: report|Installer\.php\) and plugin-info|removes all three; to remove one).*\n//' src/Plugin.php
-	perl -pi -e 's/front end, AJAX, cron, custom post type/front end, custom post type/ if /^ \* Description:/' myplugin.php
+	perl -pi -e 's/, a block, AJAX and a scheduled email\./ and a block./ if /^ \* Description:/' myplugin.php
 	if [ -f readme.txt ]; then
 		perl -pi -e '
 			$_ = "" if /^\* \*\*(Daily report|"Send a test report")\*\*/;
@@ -182,8 +182,8 @@ if [ "$MINIMAL" -eq 1 ]; then
 	fi
 fi
 
-files=$(grep -rlI --exclude-dir={.git,vendor,node_modules} \
-	--exclude={README.md,composer.lock,package-lock.json,rename.sh,'.*cache'} \
+files=$(grep -rlI --exclude-dir={.git,.claude,vendor,node_modules} \
+	--exclude={.git,README.md,composer.lock,package-lock.json,rename.sh,'.*cache'} \
 	-e "$OLD_SLUG" -e "$OLD_NAME" -e 'WPGenius\\' -ie myplugin . || true)
 
 if [ -n "$files" ]; then
@@ -200,6 +200,16 @@ if [ -n "$files" ]; then
 			s/myplugin/$ENV{FUNC}/g;
 		' "$f"
 	done
+fi
+
+# The "Rename script" CI job tests this script; it belongs to the boilerplate
+# only. Left in, it would rename an already renamed plugin and fail.
+if [ -f .github/workflows/ci.yml ]; then
+	perl -0pi -e '
+		s/^  rename:\n.*?(?=^  \S)//ms;
+		s/^(\s*needs: \[[^\]]*?), rename(\b)/$1$2/m;
+		s/^# In the boilerplate itself it also renames a copy and tests the result\.\n//m;
+	' .github/workflows/ci.yml
 fi
 
 git mv -f myplugin.php "$SLUG.php" 2>/dev/null || mv myplugin.php "$SLUG.php"
@@ -235,7 +245,13 @@ if [ -n "$GITHUB" ] && [ -f composer.json ]; then
 	OWNER=$owner perl -pi -e 's#"name": "[^"]*/\Q$ENV{SLUG}\E"#"name": "$ENV{OWNER}/$ENV{SLUG}"#' composer.json
 fi
 
-left=$(grep -rIl --exclude-dir={.git,vendor,node_modules} --exclude={composer.lock,package-lock.json,rename.sh,README.md,'.*cache'} \
+# The new names change line lengths, so Prettier may wrap JS lines differently.
+formatted=0
+if [ -x node_modules/.bin/wp-scripts ]; then
+	node_modules/.bin/wp-scripts format assets blocks >/dev/null 2>&1 && formatted=1
+fi
+
+left=$(grep -rIl --exclude-dir={.git,.claude,vendor,node_modules} --exclude={.git,composer.lock,package-lock.json,rename.sh,README.md,'.*cache'} \
 	-e "$OLD_SLUG" -e 'WPGenius\\' -ie myplugin . || true)
 
 cat <<EOF
@@ -267,4 +283,9 @@ fi
 if [ -d vendor ] || [ -d node_modules ]; then
 	echo
 	echo "vendor/ or node_modules/ exist: run 'composer install' and 'npm run build' again."
+fi
+if [ "$formatted" -eq 0 ]; then
+	echo
+	echo "Note: run 'npm ci && npm run format && npm run build' before your first commit:"
+	echo "      the new names change line lengths, and build/ still has the old names."
 fi

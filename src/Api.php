@@ -84,6 +84,74 @@ class Api {
 		return current_user_can( $capability );
 	}
 
+	/**
+	 * HTML the plugin may print: post content tags plus what blocks and
+	 * templates need (data-* and ARIA attributes, hidden, tabindex, style,
+	 * search inputs, responsive images).
+	 *
+	 * Escape late with it: echo wp_kses( $html, self::allowed_html() );
+	 * Add tags or attributes with the 'myplugin_allowed_html' filter.
+	 *
+	 * @return array<string, array<string, bool>>
+	 */
+	public static function allowed_html() {
+		$allowed = wp_kses_allowed_html( 'post' );
+
+		$allowed['input'] = array(
+			'type'         => true,
+			'name'         => true,
+			'value'        => true,
+			'placeholder'  => true,
+			'checked'      => true,
+			'disabled'     => true,
+			'readonly'     => true,
+			'required'     => true,
+			'autocomplete' => true,
+			'min'          => true,
+			'max'          => true,
+			'step'         => true,
+		);
+		$allowed['img']   = array_merge(
+			isset( $allowed['img'] ) ? $allowed['img'] : array(),
+			array(
+				'srcset'        => true,
+				'sizes'         => true,
+				'decoding'      => true,
+				'fetchpriority' => true,
+				'loading'       => true,
+			)
+		);
+
+		$common = array(
+			'id'               => true,
+			'class'            => true,
+			'style'            => true,
+			'hidden'           => true,
+			'tabindex'         => true,
+			'role'             => true,
+			'data-*'           => true,
+			'aria-controls'    => true,
+			'aria-current'     => true,
+			'aria-describedby' => true,
+			'aria-expanded'    => true,
+			'aria-hidden'      => true,
+			'aria-label'       => true,
+			'aria-labelledby'  => true,
+			'aria-live'        => true,
+			'aria-pressed'     => true,
+		);
+		foreach ( $allowed as $tag => $attributes ) {
+			$allowed[ $tag ] = array_merge( is_array( $attributes ) ? $attributes : array(), $common );
+		}
+
+		/**
+		 * Filters the HTML tags and attributes the plugin's output may contain.
+		 *
+		 * @param array<string, array<string, bool>> $allowed Tag => attributes, as for wp_kses().
+		 */
+		return (array) apply_filters( 'myplugin_allowed_html', $allowed );
+	}
+
 	/*
 	 * ------------------------------------------------------------------
 	 * Templates
