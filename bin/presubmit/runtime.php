@@ -13,7 +13,7 @@
  * @package WPGenius\MyPlugin
  */
 
-// phpcs:disable WordPress.WP.AlternativeFunctions, WordPress.PHP.DevelopmentFunctions, WordPress.WP.GlobalVariablesOverride -- A test script, not plugin code.
+// phpcs:disable WordPress.WP.AlternativeFunctions, WordPress.PHP.DevelopmentFunctions, WordPress.WP.GlobalVariablesOverride, WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- A test script, not plugin code.
 
 require_once '/wordpress/wp-load.php';
 require_once ABSPATH . 'wp-admin/includes/admin.php';
