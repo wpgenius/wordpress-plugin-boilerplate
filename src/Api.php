@@ -196,7 +196,7 @@ class Api {
 		}
 
 		ob_start();
-		( static function ( $myplugin_file, $args ) {
+		( static function ( $myplugin_file, $args ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed -- The included template reads $args.
 			include $myplugin_file;
 		} )( $file, $args );
 		return (string) ob_get_clean();
