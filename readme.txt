@@ -4,7 +4,7 @@ Tags: boilerplate, starter, settings, block, shortcode
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 2.0.8
+Stable tag: 2.0.9
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -63,6 +63,16 @@ This plugin does not connect to any external service.
 4. The Items with live filter block, filtering as you type.
 
 == Changelog ==
+
+= 2.0.9 =
+
+* Keep bundled libraries' README and licence files in the release zip (#94)
+* Third-party notices for bundled JavaScript (#95)
+* Translations: include the compiled blocks in the .pot and let WordPress load translations (#96)
+* Escape block and template output late with an allowed-HTML list (#97)
+* Direct-access guard in the generated block asset files (#98)
+* readme.txt: External services section and matching short description (#99)
+* readme.txt: link to the block source code, no trademark in the changelog (#106)
 
 = 2.0.8 =
 
