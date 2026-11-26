@@ -471,6 +471,17 @@ blocks or other apps read or change: arguments are validated, every route says
 who may call it, and blocks call it with `wp.apiFetch`. admin-ajax (`Ajax.php`)
 is fine for small one-off actions in wp-admin.
 
+**Templates:** `Api::render_template( 'items-list.php', array( 'query' => $query ) )`
+returns the HTML of `templates/items-list.php`, which reads its values from
+`$args` (`$args['query']`). A theme overrides a template by copying it to
+`<theme>/wordpress-plugin-boilerplate/`.
+
+**Delete the helpers you don't use.** Plugin reviewers ask about unused code. In
+`Api.php` these are optional: `render_template()` and `locate_template()`
+(templates), `send_email()` and `replace_placeholders()` (emails), and
+`verify_request()` (admin-ajax nonce and capability check). Delete a helper,
+together with its unit test, when nothing calls it.
+
 **Add a part:** create the class in `src/`, register its hooks in the
 constructor, and add it to the list in `Plugin.php`.
 

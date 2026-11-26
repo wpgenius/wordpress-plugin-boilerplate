@@ -182,7 +182,8 @@ class Api {
 	}
 
 	/**
-	 * Render a template and return its HTML. Each key of $args becomes a variable in the template.
+	 * Render a template and return its HTML. The template reads its values from
+	 * $args, e.g. $args['query'] (no extract(), which reviewers flag).
 	 *
 	 * @param string               $name Template file, e.g. 'items-list.php'.
 	 * @param array<string, mixed> $args Variables for the template.
@@ -196,7 +197,6 @@ class Api {
 
 		ob_start();
 		( static function ( $myplugin_file, $args ) {
-			extract( $args, EXTR_SKIP ); // phpcs:ignore WordPress.PHP.DontExtract.extract_extract -- Templates read their variables by name.
 			include $myplugin_file;
 		} )( $file, $args );
 		return (string) ob_get_clean();
