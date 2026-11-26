@@ -4,7 +4,7 @@ Tags: boilerplate, starter, settings, block, shortcode
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 2.0.9
+Stable tag: 2.0.10
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -63,6 +63,10 @@ This plugin does not connect to any external service.
 4. The Items with live filter block, filtering as you type.
 
 == Changelog ==
+
+= 2.0.10 =
+
+* Templates read their variables from $args instead of extract() (#108)
 
 = 2.0.9 =
 
