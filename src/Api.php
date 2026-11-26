@@ -111,7 +111,7 @@ class Api {
 			'max'          => true,
 			'step'         => true,
 		);
-		$allowed['img']    = array_merge(
+		$allowed['img']   = array_merge(
 			isset( $allowed['img'] ) ? $allowed['img'] : array(),
 			array(
 				'srcset'        => true,

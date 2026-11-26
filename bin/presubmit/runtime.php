@@ -59,6 +59,7 @@ $myplugin_lines[] = 'render_bytes=' . strlen( $myplugin_html )
 // deprecation on PHP 8.1+ (counted as core_notices, not the plugin's).
 $GLOBALS['plugin_page'] = 'myplugin_settings'; // Admin\Settings::PAGE.
 $GLOBALS['title']       = 'Settings';
+
 $myplugin_settings = new WPGenius\MyPlugin\Admin\Settings();
 $myplugin_settings->register_settings();
 ob_start();
@@ -98,12 +99,20 @@ ob_start();
 uninstall_plugin( PRESUBMIT_PLUGIN );
 $myplugin_uninstall_output = (string) ob_get_clean();
 global $wpdb;
-$myplugin_lines[] = 'uninstall_output_bytes=' . strlen( $myplugin_uninstall_output )
+$myplugin_items_left = get_posts(
+	array(
+		'post_type'   => 'myplugin_item',
+		'post_status' => 'any',
+		'numberposts' => -1,
+		'fields'      => 'ids',
+	)
+);
+$myplugin_lines[]    = 'uninstall_output_bytes=' . strlen( $myplugin_uninstall_output )
 	. ' option_left=' . ( $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$wpdb->options} WHERE option_name = %s", 'myplugin_settings' ) ) ? 'yes' : 'no' ) // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- get_option() would return the registered default.
-	. ' items_left=' . count( get_posts( array( 'post_type' => 'myplugin_item', 'post_status' => 'any', 'numberposts' => -1, 'fields' => 'ids' ) ) )
+	. ' items_left=' . count( $myplugin_items_left )
 	. ' table_left=' . ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->prefix . 'myplugin_log' ) ) ? 'yes' : 'no' ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Checks the table is gone.
 
 $myplugin_plugin_notices = count( preg_grep( '/^PLUGIN /', $myplugin_errors ) );
 $myplugin_lines[]        = 'plugin_notices=' . $myplugin_plugin_notices . ' core_notices=' . ( count( $myplugin_errors ) - $myplugin_plugin_notices );
-$myplugin_lines   = array_merge( $myplugin_lines, $myplugin_errors );
+$myplugin_lines          = array_merge( $myplugin_lines, $myplugin_errors );
 file_put_contents( '/sp/runtime-' . PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION . '.txt', implode( "\n", $myplugin_lines ) . "\n", FILE_APPEND );
