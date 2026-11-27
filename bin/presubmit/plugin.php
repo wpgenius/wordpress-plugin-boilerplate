@@ -7,6 +7,11 @@
  * administrator, after activation. Callbacks that return text add it to the
  * results line as "key=value" pairs.
  *
+ * The check runs as a script, not an admin page request, so is_admin() is
+ * false while the plugin loads. If the plugin starts its admin parts only under
+ * is_admin() (most do), start them in 'setup', or the Dashboard and own-screen
+ * checks see no admin hooks and pass without checking anything.
+ *
  * The values below exercise the boilerplate's examples; bin/rename.sh renames
  * them with the rest of the plugin.
  *
@@ -18,8 +23,12 @@ return array(
 	// the table prefix). Default: the Text Domain with "-" replaced by "_".
 	'prefix'            => 'myplugin',
 
-	// Runs first: create the content the blocks and shortcodes show.
+	// Runs first: start the admin parts (see above) and create the content the
+	// blocks and shortcodes show. A plugin without a front end can return its
+	// own checks here.
 	'setup'             => static function () {
+		new WPGenius\MyPlugin\Admin\Admin(); // Plugin.php starts it only in wp-admin.
+
 		foreach ( array( 'First item', 'Second item & more' ) as $title ) {
 			wp_insert_post(
 				array(
@@ -53,6 +62,11 @@ return array(
 		$settings->register_settings();
 		$settings->render_page();
 	},
+
+	// The plugin's own admin screen, where its assets must load: a screen id
+	// (for a settings page the id is also the admin_enqueue_scripts hook
+	// suffix), or array( 'id' => 'edit-my_post_type', 'hook' => 'edit.php' ).
+	'own_screen'        => 'settings_page_myplugin_settings',
 
 	// Before deactivation: turn on what schedules cron events, so the check
 	// can see that deactivation removes them.
