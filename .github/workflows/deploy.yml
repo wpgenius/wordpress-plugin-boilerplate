@@ -24,6 +24,14 @@ name: Deploy
 #
 # Secrets are masked in logs. Runs in the "production" environment, so you can
 # add required reviewers there for an extra approval step.
+#
+# Several merges in a row: each still makes its own release, but only the
+# newest one deploys. An automatic deploy first waits DEPLOY_DELAY_MINUTES (repo
+# variable, default 15, 0 = no wait), then deploys only if its release is still
+# the latest; otherwise it stops with a notice. A newer release also cancels an
+# older deploy that is still waiting. readme.txt keeps an entry per release, so
+# the deployed readme lists every version. Manual runs don't wait, and are never
+# cancelled by (and never cancel) automatic ones. Uploads never overlap.
 
 on:
   workflow_call:
@@ -53,14 +61,52 @@ on:
 permissions:
   contents: read
 
-concurrency:
-  group: deploy-production
-  cancel-in-progress: false
-
 jobs:
+  # Automatic deploys only (called by the Release workflow; a manual run's
+  # github.workflow is "Deploy"). A newer release cancels this wait.
+  wait:
+    if: github.workflow != 'Deploy'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-wait
+      cancel-in-progress: true
+    outputs:
+      superseded: ${{ steps.latest.outputs.superseded }}
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Wait, then check the release is still the latest
+        id: latest
+        env:
+          TAG: ${{ inputs.tag }}
+          DELAY: ${{ vars.DEPLOY_DELAY_MINUTES || '15' }}
+        run: |
+          set -euo pipefail
+          [[ "$DELAY" =~ ^[0-9]+$ ]] || { echo "::error::DEPLOY_DELAY_MINUTES must be a whole number of minutes (now: '$DELAY')"; exit 1; }
+          if [ "$DELAY" -gt 0 ]; then
+            echo "Waiting $DELAY minutes: if another release follows, only the newest deploys."
+            sleep $((DELAY * 60))
+          fi
+          latest=$(gh release view --repo "$GITHUB_REPOSITORY" --json tagName --jq .tagName)
+          if [ "$latest" != "$TAG" ]; then
+            echo "::notice::$TAG is superseded by $latest; that release deploys."
+            echo "superseded=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "$TAG is the latest release: deploying."
+            echo "superseded=false" >> "$GITHUB_OUTPUT"
+          fi
+
   deploy:
+    needs: wait
+    # Manual runs skip "wait" and still deploy; automatic ones deploy when the
+    # wait finished and found no newer release.
+    if: ${{ !cancelled() && needs.wait.result != 'failure' && needs.wait.outputs.superseded != 'true' }}
     runs-on: ubuntu-latest
     environment: production
+    # Uploads to the target never overlap; queued, never cancelled.
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
     env:
       GH_TOKEN: ${{ github.token }}
       DEPLOY_METHOD: ${{ vars.DEPLOY_METHOD }}
