@@ -48,7 +48,11 @@ jobs:
     steps:
       - name: Prepare
         # Outside the checkout, so the changelog never ends up in the zip or the commit.
-        run: echo "CHANGELOG_FILE=$RUNNER_TEMP/changelog.txt" >> "$GITHUB_ENV"
+        # RELEASE_DATE (UTC) goes into readme.txt's "= X.Y.Z - YYYY-MM-DD =" heading
+        # and the GitHub release title, so both show the same day.
+        run: |
+          echo "CHANGELOG_FILE=$RUNNER_TEMP/changelog.txt" >> "$GITHUB_ENV"
+          echo "RELEASE_DATE=$(date -u +%F)" >> "$GITHUB_ENV"
 
       - name: Check out main with history and tags
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -116,7 +120,7 @@ jobs:
           [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::bad tag $TAG"; exit 1; }
           gh release create "$TAG" "$ZIP" \
             --target "$SHA" \
-            --title "$TAG" \
+            --title "$TAG - $RELEASE_DATE" \
             --notes-file "$CHANGELOG_FILE"
           echo "released=true" >> "$GITHUB_OUTPUT"
 

@@ -11,7 +11,9 @@
 # What it sets:
 #   - merges: squash only; commit message = PR title + PR body; delete branch on merge
 #   - labels: release:minor, release:major (bump the automatic version),
-#     changelog:skip (leave a dev-only issue out of the changelog)
+#     changelog:skip (leave a dev-only issue out of the changelog),
+#     release:skip (merge without releasing; ships with the next release),
+#     type labels security, enhancement, bug/fix, maintenance (changelog prefixes)
 #   - private vulnerability reporting (the "Report a vulnerability" button SECURITY.md points to)
 #   - variable DEPLOY_ENABLED=false (only if not set yet), environment "production"
 #   - variable REQUIRE_LINKED_ISSUE: whether every PR must close an issue. On by
@@ -64,6 +66,21 @@ gh label create release:major --repo "$repo" --force --color b60205 \
 	--description "Release as a major version (breaking change)" >/dev/null
 gh label create changelog:skip --repo "$repo" --force --color ededed \
 	--description "Leave this issue out of the release changelog (dev-only changes)" >/dev/null
+gh label create release:skip --repo "$repo" --force --color fef2c0 \
+	--description "Don't release this merge; it ships with the next release" >/dev/null
+# Type labels: one per issue. The changelog line gets the matching prefix
+# (Security:, Enhancement:, Fix:, Maintenance:). bug and enhancement are
+# GitHub defaults, so they are only created when missing.
+gh label create security --repo "$repo" --force --color b60205 \
+	--description "Security fix (changelog: Security:)" >/dev/null
+gh label create fix --repo "$repo" --force --color e99695 \
+	--description "Fix (changelog: Fix:)" >/dev/null
+gh label create maintenance --repo "$repo" --force --color c5def5 \
+	--description "Upkeep: dependencies, compatibility, tooling (changelog: Maintenance:)" >/dev/null
+gh label create bug --repo "$repo" --color d73a4a \
+	--description "Something isn't working (changelog: Fix:)" >/dev/null 2>&1 || true
+gh label create enhancement --repo "$repo" --color a2eeef \
+	--description "New feature or improvement (changelog: Enhancement:)" >/dev/null 2>&1 || true
 
 echo "- deploy switch"
 if gh variable get DEPLOY_ENABLED --repo "$repo" >/dev/null 2>&1; then

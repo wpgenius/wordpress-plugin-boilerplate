@@ -3,10 +3,12 @@
 #   - "Version:" in the main plugin file header (style.css for a theme),
 #     and a *_VERSION constant there, if one is defined
 #   - "Stable tag:" in readme.txt, when it has one (themes do not)
-#   - a new "= X.Y.Z =" entry at the top of readme.txt's "== Changelog ==",
-#     unless an entry for that version is already there (for example the first
-#     release of an existing plugin whose readme already describes it, or a
-#     re-run): then that entry is kept as written. The entry drops the " (#N)"
+#   - a new "= X.Y.Z - YYYY-MM-DD =" entry (the release day, RELEASE_DATE or
+#     today in UTC) at the top of readme.txt's "== Changelog ==", unless an
+#     entry for that version is already there, as "= X.Y.Z =" or
+#     "= X.Y.Z - date =" (for example the first release of an existing plugin
+#     whose readme already describes it, or a re-run): then that entry is kept
+#     as written, and gets the date if it has none. The entry drops the " (#N)"
 #     issue or PR numbers at the end of each line: they mean nothing on
 #     WordPress.org. The GitHub release notes keep them (they link there).
 # Usage: stamp-version.sh <version> <changelog-file>
@@ -20,6 +22,9 @@ version=${1:?version required}
 notes=${2:?changelog file required}
 [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::bad version $version" >&2; exit 1; }
 [ -s "$notes" ] || { echo "::error::changelog file $notes is empty" >&2; exit 1; }
+
+release_date=${RELEASE_DATE:-$(date -u +%F)}
+[[ "$release_date" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] || { echo "::error::bad RELEASE_DATE $release_date (want YYYY-MM-DD)" >&2; exit 1; }
 
 main_file=$(main_plugin_file)
 
@@ -39,11 +44,16 @@ if [ -f readme.txt ]; then
 		echo "::notice::readme.txt has no 'Stable tag:' line; skipped"
 	fi
 
-	if grep -q '^== Changelog ==' readme.txt && grep -qE "^=[[:space:]]*v?${version//./\\.}[[:space:]]*=[[:space:]]*\$" readme.txt; then
+	v_re="v?${version//./\\.}"
+	if grep -q '^== Changelog ==' readme.txt && grep -qE "^=[[:space:]]*${v_re}[[:space:]]+-[[:space:]]+[^=]*[^=[:space:]][[:space:]]*=[[:space:]]*\$" readme.txt; then
 		echo "::notice::readme.txt already has a changelog entry for $version; kept as is"
+	elif grep -q '^== Changelog ==' readme.txt && grep -qE "^=[[:space:]]*${v_re}[[:space:]]*=[[:space:]]*\$" readme.txt; then
+		# An entry without a date: keep its lines, add the date to its heading.
+		V_RE="$v_re" DATE="$release_date" perl -pi -e 's/^=[ \t]*($ENV{V_RE})[ \t]*=[ \t]*$/= $1 - $ENV{DATE} =/' readme.txt
+		echo "::notice::readme.txt already has a changelog entry for $version; kept, with the date added"
 	elif grep -q '^== Changelog ==' readme.txt; then
 		lines=$(sed -E 's/[[:space:]]+\(#[0-9]+\)[[:space:]]*$//' "$notes")
-		entry=$(printf '= %s =\n\n%s' "$version" "$lines")
+		entry=$(printf '= %s - %s =\n\n%s' "$version" "$release_date" "$lines")
 		ENTRY="$entry" perl -0pi -e 's/^(== Changelog ==[ \t]*\n)\n*/$1\n$ENV{ENTRY}\n\n/m' readme.txt
 	else
 		echo "::warning::readme.txt has no '== Changelog ==' section; changelog not written"
