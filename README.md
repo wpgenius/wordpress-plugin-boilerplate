@@ -76,6 +76,13 @@ and WordPress.org uses the same file for the "Live Preview" button if you publis
 For your own plugin, the demo works once the repo is public and has a release
 (Playground downloads `releases/latest/download/<slug>.zip`).
 
+Keep `setSiteOptions` (site title, permalinks) before the steps that install and
+activate plugins. Some plugins act as the current user when the site changes,
+and Playground has none until the blueprint finishes: activating Elementor
+before a `setSiteOptions` step that changes `blogname` is fatal ("Access denied"
+from its kit sync). If a plugin must be active earlier, run
+`wp_set_current_user( 1 );` in a `runPHP` step first.
+
 ## Requirements
 
 - **To run the plugin:** WordPress 6.5 or later and PHP 7.4 or later.
@@ -317,7 +324,9 @@ issue  →  branch  →  pull request (Closes #N)  →  squash merge to main  �
      the new version into `readme.txt` and the plugin header, and commits that to
      `main`. Issue titles are what users read, so write them for users and never
      name trademarks such as "Gutenberg" (say "block editor"). Label dev-only
-     issues (CI, tooling, tests) `changelog:skip` to leave them out;
+     issues (CI, tooling, tests) `changelog:skip` to leave them out. The
+     GitHub release notes end each line with its issue number (`(#12)`, a link);
+     `readme.txt` leaves the numbers out, since they mean nothing on WordPress.org;
   4. tags the commit and publishes a GitHub release with the plugin zip
      (`releases/latest/download/<slug>.zip`).
 - **Deploys are off by default.** See below. When they are on, merging several
@@ -377,7 +386,9 @@ keeps one changelog entry per release, so the deployed readme (and WordPress.org
 still lists every version. Manual runs don't wait.
 
 To test the connection without uploading, run **Deploy** manually from the
-Actions tab with *deploy* unticked.
+Actions tab with *deploy* unticked. For `wporg` that test checks the slug and that
+the plugin's SVN repo exists, not the password: plugin SVN is publicly readable,
+so a wrong `SVN_PASSWORD` shows up only when the first release is committed.
 
 ## Bring an existing plugin or theme up to the standard
 

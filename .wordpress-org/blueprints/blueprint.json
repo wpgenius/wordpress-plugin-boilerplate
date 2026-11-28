@@ -16,6 +16,13 @@
 	"login": true,
 	"steps": [
 		{
+			"step": "setSiteOptions",
+			"options": {
+				"blogname": "Plugin boilerplate for WordPress demo",
+				"permalink_structure": "/%postname%/"
+			}
+		},
+		{
 			"step": "installPlugin",
 			"pluginData": {
 				"resource": "url",
@@ -23,13 +30,6 @@
 			},
 			"options": {
 				"activate": true
-			}
-		},
-		{
-			"step": "setSiteOptions",
-			"options": {
-				"blogname": "Plugin boilerplate for WordPress demo",
-				"permalink_structure": "/%postname%/"
 			}
 		},
 		{

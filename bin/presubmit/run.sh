@@ -6,6 +6,7 @@
 #   bin/presubmit/run.sh              # all checks
 #   bin/presubmit/run.sh pcp          # Plugin Check only
 #   bin/presubmit/run.sh runtime      # WP_DEBUG runs only
+#   bin/presubmit/run.sh --strict     # exit 1 when any check fails (CI)
 #
 # Checks:
 #   pcp      Plugin Check with every static check, experimental ones included
@@ -34,7 +35,15 @@ cd "$(dirname "${BASH_SOURCE[0]}")/../.."
 # Newer Playground CLI versions need Node 24; this one runs on Node 22.
 PLAYGROUND=${PLAYGROUND:-@wp-playground/cli@3.1.61}
 PHP_HIGH=${PHP_HIGH:-8.5}
-what=${1:-all}
+what=all
+strict=0
+for arg in "$@"; do
+	case "$arg" in
+		--strict) strict=1 ;;
+		all|pcp|runtime) what=$arg ;;
+		*) echo "Unknown argument: $arg (use all, pcp, runtime, --strict)" >&2; exit 2 ;;
+	esac
+done
 
 main_file=$(main_plugin_file)
 # The WordPress.org slug: PLUGIN_SLUG, else the Text Domain header, else the file name.
@@ -86,3 +95,33 @@ fi
 
 echo
 echo "Results: $out"
+
+# --strict: fail when a result is not clean. Each runtime line must contain
+# these exact pairs; a debug log with anything in it fails too.
+if [ "$strict" -eq 1 ]; then
+	failed=0
+	fail() { echo "::error::$1"; failed=1; }
+	if [ "$what" = all ] || [ "$what" = pcp ]; then
+		grep -qx 'errors=0 warnings=0' "$out/plugin-check.txt" \
+			|| fail "Plugin Check: $(grep -E '^errors=' "$out/plugin-check.txt" || echo 'no result') (see $out/plugin-check.txt)"
+	fi
+	if [ "$what" = all ] || [ "$what" = runtime ]; then
+		for php in "$php_low" "$PHP_HIGH"; do
+			result="$out/runtime-$php.txt"
+			for want in 'activate=ok output_bytes=0' 'inline_style_or_script=no' \
+				'dashboard_plugin_assets=none dashboard_notice_bytes=0' 'cron_after_deactivate=none' \
+				'uninstall_output_bytes=0 options_left=none tables_left=none' 'plugin_notices=0 '; do
+				grep -qF -- "$want" "$result" 2>/dev/null || fail "PHP $php: expected '$want' (see $result)"
+			done
+			log="$out/debug-$php.log"
+			if [ -s "$log" ]; then
+				fail "PHP $php: $log is not empty:"
+				head -n 20 "$log"
+			fi
+		done
+	fi
+	if [ "$failed" -ne 0 ]; then
+		exit 1
+	fi
+	echo "Strict: every check passed."
+fi

@@ -254,7 +254,10 @@ jobs:
             "$PKG/" "$SSH_USER@$SSH_HOST:$SSH_REMOTE_PATH/"
 
       # ----------------------------------------------------- WordPress.org SVN
-      - name: WordPress.org - check settings and SVN access
+      # Checks the settings and that the plugin's SVN repo exists. Plugin SVN is
+      # publicly readable, so this cannot test SVN_USERNAME / SVN_PASSWORD: a
+      # wrong password shows up only when the release is committed below.
+      - name: WordPress.org - check settings and the plugin's SVN repo
         if: env.DEPLOY_METHOD == 'wporg'
         id: wporg
         env:
@@ -271,6 +274,7 @@ jobs:
           sudo apt-get update -qq && sudo apt-get install -y -qq subversion >/dev/null
           url="https://plugins.svn.wordpress.org/$slug"
           svn ls "$url" --non-interactive >/dev/null || { echo "::error::$url is not reachable (is the plugin approved on WordPress.org?)"; exit 1; }
+          echo "::notice::$url exists. SVN_USERNAME and SVN_PASSWORD are not tested here (plugin SVN is publicly readable); they are used when the release is committed."
           echo "url=$url" >> "$GITHUB_OUTPUT"
 
       - name: WordPress.org - commit trunk, tag and assets
@@ -300,4 +304,5 @@ jobs:
           svn status
           svn commit --non-interactive --no-auth-cache \
             --username "$SVN_USERNAME" --password "$SVN_PASSWORD" \
-            --message "Release $VERSION"
+            --message "Release $VERSION" \
+            || { echo "::error::svn commit failed. If the output above says 'Authorization failed' or 'E170013', check SVN_USERNAME (your WordPress.org username, case-sensitive) and SVN_PASSWORD (the SVN password from your WordPress.org profile, Account & Security), and that the user is a committer of this plugin."; exit 1; }
