@@ -28,13 +28,15 @@ permissions:
   pull-requests: read
   issues: read
 
-concurrency:
-  group: release
-  cancel-in-progress: false
-
 jobs:
   release:
     runs-on: ubuntu-latest
+    # One release at a time. Set on this job, not the workflow, so the deploy
+    # job below (which may wait DEPLOY_DELAY_MINUTES) doesn't hold up the next
+    # merge's release.
+    concurrency:
+      group: release
+      cancel-in-progress: false
     # The bot's own release commit never needs another release. The author is
     # checked too, so a pull request titled "Release v..." still gets released.
     if: ${{ !(startsWith(github.event.head_commit.message, 'Release v') && github.event.head_commit.author.name == 'github-actions[bot]') }}

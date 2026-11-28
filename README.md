@@ -329,7 +329,8 @@ issue  →  branch  →  pull request (Closes #N)  →  squash merge to main  �
      `readme.txt` leaves the numbers out, since they mean nothing on WordPress.org;
   4. tags the commit and publishes a GitHub release with the plugin zip
      (`releases/latest/download/<slug>.zip`).
-- **Deploys are off by default.** See below.
+- **Deploys are off by default.** See below. When they are on, merging several
+  PRs in a row deploys only the newest release.
 
 ## Submitting to WordPress.org
 
@@ -375,6 +376,14 @@ the repo variable `DEPLOY_ENABLED` is `true`. Choose the target with `DEPLOY_MET
 | `ftps` | FTP with TLS (shared hosting) | `FTP_PORT`, `FTP_REMOTE_PATH`, `FTP_SSL_VERIFY` / `FTP_HOST`, `FTP_USERNAME`, `FTP_PASSWORD` |
 | `ssh` | rsync over SSH | `SSH_PORT`, `SSH_REMOTE_PATH`, `SSH_DELETE` / `SSH_HOST`, `SSH_USER`, `SSH_PRIVATE_KEY`, `SSH_KNOWN_HOSTS` |
 | `wporg` | WordPress.org plugin SVN | `WPORG_SLUG` / `SVN_USERNAME`, `SVN_PASSWORD` (banners and icons go in `.wordpress-org/`) |
+
+**Several merges in a row deploy once.** Each merge still makes its own release,
+but an automatic deploy first waits `DEPLOY_DELAY_MINUTES` (repo variable, default
+15; `0` deploys straight away) and then deploys only if its release is still the
+latest. Merge several PRs within that window and only the last release deploys;
+the others stop with a notice ("v1.2.3 is superseded by v1.2.4"). `readme.txt`
+keeps one changelog entry per release, so the deployed readme (and WordPress.org)
+still lists every version. Manual runs don't wait.
 
 To test the connection without uploading, run **Deploy** manually from the
 Actions tab with *deploy* unticked. For `wporg` that test checks the slug and that
