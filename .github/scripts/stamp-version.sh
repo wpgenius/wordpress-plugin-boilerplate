@@ -6,7 +6,9 @@
 #   - a new "= X.Y.Z =" entry at the top of readme.txt's "== Changelog ==",
 #     unless an entry for that version is already there (for example the first
 #     release of an existing plugin whose readme already describes it, or a
-#     re-run): then that entry is kept as written
+#     re-run): then that entry is kept as written. The entry drops the " (#N)"
+#     issue or PR numbers at the end of each line: they mean nothing on
+#     WordPress.org. The GitHub release notes keep them (they link there).
 # Usage: stamp-version.sh <version> <changelog-file>
 set -euo pipefail
 
@@ -40,7 +42,8 @@ if [ -f readme.txt ]; then
 	if grep -q '^== Changelog ==' readme.txt && grep -qE "^=[[:space:]]*v?${version//./\\.}[[:space:]]*=[[:space:]]*\$" readme.txt; then
 		echo "::notice::readme.txt already has a changelog entry for $version; kept as is"
 	elif grep -q '^== Changelog ==' readme.txt; then
-		entry=$(printf '= %s =\n\n%s' "$version" "$(cat "$notes")")
+		lines=$(sed -E 's/[[:space:]]+\(#[0-9]+\)[[:space:]]*$//' "$notes")
+		entry=$(printf '= %s =\n\n%s' "$version" "$lines")
 		ENTRY="$entry" perl -0pi -e 's/^(== Changelog ==[ \t]*\n)\n*/$1\n$ENV{ENTRY}\n\n/m' readme.txt
 	else
 		echo "::warning::readme.txt has no '== Changelog ==' section; changelog not written"

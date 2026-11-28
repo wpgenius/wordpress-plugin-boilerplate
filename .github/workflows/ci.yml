@@ -5,7 +5,8 @@ name: CI
 # each supported PHP version, WordPress Coding Standards, JS/CSS lint, and that
 # the committed block build in build/ matches the sources in blocks/, and the
 # official WordPress Plugin Check on the plugin as it ships (the release zip),
-# and integration tests in a real WordPress (the lowest supported and the latest).
+# and integration tests in a real WordPress (the lowest supported and the latest),
+# and the strict pre-submission checks (bin/presubmit/run.sh --strict).
 # In the boilerplate itself it also renames a copy and tests the result.
 #
 # The last job, "CI", passes only when every other job passed. It is the one
@@ -182,6 +183,33 @@ jobs:
           check
           echo "::endgroup::"
 
+  presubmit:
+    name: Pre-submission checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      # Boilerplate only: Plugin Check warns about the boilerplate's own
+      # placeholder names, so the checkout is renamed first. bin/rename.sh
+      # deletes this step from a renamed plugin.
+      - name: Boilerplate only - rename before checking
+        run: |
+          bin/rename.sh "Acme Events" --vendor Acme --author "Acme Inc" --yes
+          npm run build
+
+      # bin/presubmit/run.sh in WordPress Playground: Plugin Check with the
+      # experimental checks, then a WP_DEBUG run on the lowest and newest PHP.
+      # --strict fails the job on any warning, notice or leftover.
+      - name: Pre-submission checks (strict)
+        run: bin/presubmit/run.sh --strict
+
   integration:
     name: Integration tests (WordPress ${{ matrix.wp.name }})
     runs-on: ubuntu-latest
@@ -230,7 +258,7 @@ jobs:
     name: CI
     # Runs even when a job above failed, so the required check always reports.
     if: always()
-    needs: [php-lint, phpcs, phpstan, js-css-lint, plugin-check, rename, integration]
+    needs: [php-lint, phpcs, phpstan, js-css-lint, plugin-check, rename, presubmit, integration]
     runs-on: ubuntu-latest
     steps:
       - name: All jobs passed
