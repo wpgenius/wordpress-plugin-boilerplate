@@ -179,7 +179,9 @@ bin/setup-github.sh
 ```
 
 GitHub templates and clones copy files only, so `bin/setup-github.sh` applies the
-settings once: squash-only merges, the `release:minor` / `release:major` labels,
+settings once: squash-only merges, the release labels (`release:minor`, `release:major`,
+`release:skip`, `changelog:skip`) and type labels (`security`, `enhancement`, `bug`,
+`fix`, `maintenance`),
 `DEPLOY_ENABLED=false`, and a "Protect main" ruleset. The ruleset requires PRs
 with a linked issue and passing CI, and lets repo admins and the release workflow (through a `release-bot` deploy key it creates) bypass it (see
 [How changes ship](#how-changes-ship)). It needs admin rights on the repo and is
@@ -320,17 +322,48 @@ issue  →  branch  →  pull request (Closes #N)  →  squash merge to main  �
      release. Docs, CI and config changes don't release;
   2. bumps the version: patch by default, or minor/major when the PR has the
      `release:minor` / `release:major` label;
-  3. writes the changelog (one line per closed issue, using the issue title) and
-     the new version into `readme.txt` and the plugin header, and commits that to
-     `main`. Issue titles are what users read, so write them for users and never
-     name trademarks such as "Gutenberg" (say "block editor"). Label dev-only
-     issues (CI, tooling, tests) `changelog:skip` to leave them out. The
-     GitHub release notes end each line with its issue number (`(#12)`, a link);
-     `readme.txt` leaves the numbers out, since they mean nothing on WordPress.org;
+  3. writes the changelog and the new version into `readme.txt` and the plugin
+     header, and commits that to `main` (see the format below);
   4. tags the commit and publishes a GitHub release with the plugin zip
      (`releases/latest/download/<slug>.zip`).
 - **Deploys are off by default.** See below. When they are on, merging several
   PRs in a row deploys only the newest release.
+
+**The changelog.** Each release adds an entry like this to `readme.txt`:
+
+```
+= 1.4.0 - 2026-11-28 =
+
+* Security: Escape the item title in the list
+* Enhancement: Export items as CSV
+* Fix: Load more stops after the second page
+* Maintenance: Tested up to WordPress 7.1
+```
+
+- One line per issue the release's PRs closed, using the **issue title**. Titles
+  are what users read: write them for users, and never name trademarks such as
+  "Gutenberg" (say "block editor").
+- Give each issue **one type label**; the line gets its prefix: `security` →
+  Security, `enhancement` → Enhancement, `bug` or `fix` → Fix, `maintenance` →
+  Maintenance. Lines are grouped in that order; an issue without a type label
+  gets no prefix (and is listed last). Don't put the prefix in the title.
+- The heading carries the release date. An entry you write yourself ahead of a
+  release (`= 1.4.0 =` or `= 1.4.0 - date =`) is kept as written, and gets the
+  date if it has none: the way to word an entry by hand.
+- The GitHub release notes have the same lines, each ending with its issue
+  number as a link (`(#12)`); `readme.txt` leaves the numbers out, since they
+  mean nothing on WordPress.org.
+- **`changelog:skip`** hides an issue's line, not the release: dev-only issues
+  (CI, tooling, tests). A merge that changes the zip still releases, and with
+  deploys on, it reaches every site, even if its only line is hidden (the entry
+  then says "Maintenance release.").
+- **`release:skip`** on a PR (or on every issue it closes) holds the change back:
+  a merge whose changes are all held makes no release. It stays in `main` and
+  ships, with its line, in the next release. Use it for edits that change the
+  zip but don't need to go out alone, such as `readme.txt` wording: any
+  `readme.txt` edit changes the zip.
+- In repos with the linked-issue rule off, the PR title is the line and the PR's
+  labels give the type.
 
 ## Submitting to WordPress.org
 
