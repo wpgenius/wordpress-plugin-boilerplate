@@ -202,11 +202,12 @@ if [ -n "$files" ]; then
 	done
 fi
 
-# The "Rename script" CI job tests this script; it belongs to the boilerplate
-# only. Left in, it would rename an already renamed plugin and fail.
+# The "Rename script" CI job and the presubmit job's rename step belong to the
+# boilerplate only. Left in, they would rename an already renamed plugin and fail.
 if [ -f .github/workflows/ci.yml ]; then
 	perl -0pi -e '
 		s/^  rename:\n.*?(?=^  \S)//ms;
+		s/^      # Boilerplate only: .*?(?=^      # bin\/presubmit\/run\.sh)//ms;
 		s/^(\s*needs: \[[^\]]*?), rename(\b)/$1$2/m;
 		s/^# In the boilerplate itself it also renames a copy and tests the result\.\n//m;
 	' .github/workflows/ci.yml
